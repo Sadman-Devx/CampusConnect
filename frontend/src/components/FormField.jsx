@@ -33,15 +33,15 @@ export default function FormField({
           autoComplete={autoComplete}
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
-          className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition
-            focus:ring-2 focus:ring-purple-400
-            ${error ? "border-red-400" : "border-gray-300"}`}
+          className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-all duration-200
+            focus:ring-2 focus:ring-green-400 focus:border-green-400
+            ${error ? "border-red-400" : "border-gray-300 hover:border-gray-400"}`}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword((s) => !s)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-700"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 transition-colors duration-200 hover:text-green-600"
             tabIndex={-1}
           >
             {showPassword ? "Hide" : "Show"}
@@ -49,7 +49,7 @@ export default function FormField({
         )}
       </div>
       {error && (
-        <p id={`${id}-error`} className="mt-1 text-xs text-red-500">
+        <p id={`${id}-error`} className="mt-1 text-xs text-red-500 animate-fade-in">
           {error}
         </p>
       )}
