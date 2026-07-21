@@ -46,9 +46,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-2xl font-semibold text-gray-900">Welcome back</h1>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-green-50 via-white to-green-50 px-4">
+      <div className="w-full max-w-sm rounded-2xl border border-green-100 bg-white p-8 shadow-sm shadow-green-100/50 animate-fade-up transition-shadow duration-300 hover:shadow-md hover:shadow-green-100">
+        <h1 className="mb-1 text-2xl font-bold text-gray-900">Welcome back</h1>
         <p className="mb-6 text-sm text-gray-500">Log in to Campus Connect</p>
 
         <form onSubmit={handleSubmit} noValidate>
@@ -71,7 +71,7 @@ export default function LoginPage() {
           />
 
           {submitError && (
-            <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+            <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 animate-fade-in">
               {submitError}
             </p>
           )}
@@ -79,8 +79,9 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-purple-600 py-2.5 text-sm font-medium text-white
-              transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg bg-green-600 py-2.5 text-sm font-medium text-white
+              transition-all duration-200 hover:bg-green-700 hover:shadow-md hover:shadow-green-200
+              active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
           >
             {isSubmitting ? "Logging in…" : "Log in"}
           </button>
@@ -88,7 +89,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           Don't have an account?{" "}
-          <Link to="/register" className="font-medium text-purple-600 hover:underline">
+          <Link to="/register" className="font-medium text-green-600 transition-colors duration-200 hover:text-green-700 hover:underline">
             Create one
           </Link>
         </p>
