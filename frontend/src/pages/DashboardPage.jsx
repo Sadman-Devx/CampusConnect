@@ -1,11 +1,12 @@
 import { useAuth } from "../context/AuthContext";
+import DashboardWidgets from "../components/DashboardWidgets";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
-      <div className="mx-auto max-w-2xl px-4 py-10 animate-fade-up">
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 animate-fade-up">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
           <button
@@ -20,7 +21,7 @@ export default function DashboardPage() {
           Welcome, <span className="font-medium">{user?.username}</span> — this route is
           protected and only reachable while authenticated.
         </p>
-        <dl className="mt-6 grid grid-cols-2 gap-4 text-sm">
+        <dl className="mt-6 grid grid-cols-2 gap-4 text-sm sm:max-w-md">
           <div className="rounded-lg border border-green-100 bg-white p-4 shadow-sm animate-pop-in animate-delay-1 transition-shadow duration-300 hover:shadow-md hover:shadow-green-100">
             <dt className="text-gray-500">Email</dt>
             <dd className="font-medium text-gray-900">{user?.email}</dd>
@@ -30,6 +31,14 @@ export default function DashboardPage() {
             <dd className="font-medium text-gray-900">{user?.role}</dd>
           </div>
         </dl>
+
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-gray-900">Quick access</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Jump straight into the tools you use most.
+          </p>
+          <DashboardWidgets />
+        </div>
       </div>
     </div>
   );
