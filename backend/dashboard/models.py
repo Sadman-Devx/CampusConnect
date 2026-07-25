@@ -18,6 +18,20 @@ class FinancialAidItem(models.Model):
     deadline = models.DateField(null=True, blank=True)
     description = models.TextField(blank=True)
 
+    # --- FR-04: eligibility criteria used by the content-based recommender ---
+    eligible_majors = models.JSONField(
+        default=list, blank=True,
+        help_text="List of eligible majors, e.g. ['Computer Science']. Empty list = open to all majors."
+    )
+    eligible_years = models.JSONField(
+        default=list, blank=True,
+        help_text="List of eligible academic years, e.g. ['Junior', 'Senior']. Empty list = open to all years."
+    )
+    min_gpa = models.DecimalField(
+        max_digits=3, decimal_places=2, null=True, blank=True,
+        help_text="Minimum GPA required (0.00-4.00). Blank = no GPA requirement."
+    )
+
     def __str__(self):
         return self.title
 
@@ -37,6 +51,16 @@ class EventItem(models.Model):
     location = models.CharField(max_length=150, blank=True)
     date = models.DateTimeField()
     description = models.TextField(blank=True)
+
+    # --- FR-04: eligibility/targeting criteria used by the content-based recommender ---
+    eligible_majors = models.JSONField(
+        default=list, blank=True,
+        help_text="List of target majors, e.g. ['Computer Science']. Empty list = open to all majors."
+    )
+    eligible_years = models.JSONField(
+        default=list, blank=True,
+        help_text="List of target academic years. Empty list = open to all years."
+    )
 
     def __str__(self):
         return self.title
