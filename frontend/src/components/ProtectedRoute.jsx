@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import ChatWidget from "./ChatWidget";
 
 export default function ProtectedRoute() {
   const { isAuthenticated, loading } = useAuth();
@@ -17,5 +18,10 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <ChatWidget />
+    </>
+  );
 }
