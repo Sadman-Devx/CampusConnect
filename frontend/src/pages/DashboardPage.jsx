@@ -1,5 +1,7 @@
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardWidgets from "../components/DashboardWidgets";
+import { SparkleIcon, ChevronRightIcon } from "../components/icons/DashboardIcons";
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -31,6 +33,26 @@ export default function DashboardPage() {
             <dd className="font-medium text-gray-900">{user?.role}</dd>
           </div>
         </dl>
+
+        <Link
+          to="/recommendations"
+          className="group mt-8 flex items-center justify-between gap-4 rounded-xl border border-green-200
+            bg-gradient-to-r from-green-600 to-green-500 p-5 shadow-sm transition-all duration-200
+            hover:-translate-y-0.5 hover:shadow-md animate-pop-in animate-delay-3"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/20 text-white">
+              <SparkleIcon className="h-6 w-6" />
+            </span>
+            <div>
+              <h3 className="text-base font-semibold text-white">Recommended for you</h3>
+              <p className="text-sm text-green-50">
+                Scholarships and events matched to your profile
+              </p>
+            </div>
+          </div>
+          <ChevronRightIcon className="h-5 w-5 shrink-0 text-white transition-transform duration-200 group-hover:translate-x-0.5" />
+        </Link>
 
         <div className="mt-10">
           <h2 className="text-lg font-semibold text-gray-900">Quick access</h2>

@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import WidgetDetailPage from "./pages/WidgetDetailPage";
+import RecommendationsPage from "./pages/RecommendationsPage";
 import "./App.css";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/:slug" element={<WidgetDetailPage />} />
+          <Route path="/recommendations" element={<RecommendationsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

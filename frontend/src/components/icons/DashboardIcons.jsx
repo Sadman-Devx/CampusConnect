@@ -59,3 +59,22 @@ export function ChevronRightIcon({ className }) {
     </svg>
   );
 }
+
+export function SparkleIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+      <path d="m6.5 6.5 2 2M15.5 15.5l2 2M6.5 17.5l2-2M15.5 8.5l2-2" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  );
+}
+
+export function CheckCircleIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8.5 12.5 2.5 2.5 4.5-5" />
+    </svg>
+  );
+}
