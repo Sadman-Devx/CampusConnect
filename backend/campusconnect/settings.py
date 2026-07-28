@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'dashboard',
     'chatbot',
     'recommendations',
+    'analytics',      
 ]
 
 MIDDLEWARE = [

@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/dashboard/', include('dashboard.urls')),
     path('api/chatbot/', include('chatbot.urls')),
     path('api/recommendations/', include('recommendations.urls')),
+    path('api/analytics/', include('analytics.urls')),
 ]

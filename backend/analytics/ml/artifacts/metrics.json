@@ -1,0 +1,26 @@
+{
+  "model_version": "v1",
+  "n_samples": 4000,
+  "n_train": 3200,
+  "n_test": 800,
+  "accuracy": 0.7725,
+  "precision": 0.7736,
+  "recall": 0.7736,
+  "f1_score": 0.7736,
+  "roc_auc": 0.8505,
+  "feature_order": [
+    "gpa",
+    "academic_year_progress",
+    "engagement_score",
+    "days_since_last_active",
+    "advising_engagement"
+  ],
+  "coefficients": {
+    "gpa": -1.2909,
+    "academic_year_progress": -0.0036,
+    "engagement_score": -0.9005,
+    "days_since_last_active": 1.067,
+    "advising_engagement": -0.4195
+  },
+  "intercept": 0.0432
+}
