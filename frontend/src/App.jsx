@@ -1,12 +1,14 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import GuestRoute from "./components/GuestRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdvisorRoute from "./components/AdvisorRoute";
 import { AuthProvider } from "./context/AuthContext";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import WidgetDetailPage from "./pages/WidgetDetailPage";
 import RecommendationsPage from "./pages/RecommendationsPage";
+import AdvisorDashboardPage from "./pages/AdvisorDashboardPage";
 import "./App.css";
 
 function App() {
@@ -24,6 +26,10 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/:slug" element={<WidgetDetailPage />} />
           <Route path="/recommendations" element={<RecommendationsPage />} />
+
+          <Route element={<AdvisorRoute />}>
+            <Route path="/advisor" element={<AdvisorDashboardPage />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardWidgets from "../components/DashboardWidgets";
-import { SparkleIcon, ChevronRightIcon } from "../components/icons/DashboardIcons";
+import { SparkleIcon, ChevronRightIcon, ShieldAlertIcon } from "../components/icons/DashboardIcons";
+
+const STAFF_ROLES = ["advisor", "admin"];
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const isStaff = STAFF_ROLES.includes(user?.role);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
@@ -53,6 +56,28 @@ export default function DashboardPage() {
           </div>
           <ChevronRightIcon className="h-5 w-5 shrink-0 text-white transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
+
+        {isStaff && (
+          <Link
+            to="/advisor"
+            className="group mt-4 flex items-center justify-between gap-4 rounded-xl border border-gray-200
+              bg-gradient-to-r from-gray-900 to-gray-700 p-5 shadow-sm transition-all duration-200
+              hover:-translate-y-0.5 hover:shadow-md animate-pop-in animate-delay-4"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 text-white">
+                <ShieldAlertIcon className="h-6 w-6" />
+              </span>
+              <div>
+                <h3 className="text-base font-semibold text-white">Advisor Dashboard</h3>
+                <p className="text-sm text-gray-300">
+                  At-risk students, risk scores, and alerts to follow up on
+                </p>
+              </div>
+            </div>
+            <ChevronRightIcon className="h-5 w-5 shrink-0 text-white transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
+        )}
 
         <div className="mt-10">
           <h2 className="text-lg font-semibold text-gray-900">Quick access</h2>

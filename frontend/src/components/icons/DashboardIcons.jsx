@@ -78,3 +78,32 @@ export function CheckCircleIcon({ className }) {
     </svg>
   );
 }
+
+export function ShieldAlertIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M12 3 4 6v6c0 4.5 3.4 7.7 8 9 4.6-1.3 8-4.5 8-9V6l-8-3Z" />
+      <path d="M12 8.5v4.5" />
+      <circle cx="12" cy="16" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function RefreshIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M4 4v5h5" />
+      <path d="M20 20v-5h-5" />
+      <path d="M4.6 15a8 8 0 0 0 13.8 3.2M19.4 9a8 8 0 0 0-13.8-3.2" />
+    </svg>
+  );
+}
+
+export function XCircleIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m9.5 9.5 5 5M14.5 9.5l-5 5" />
+    </svg>
+  );
+}
