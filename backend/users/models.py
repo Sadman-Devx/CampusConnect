@@ -23,6 +23,13 @@ class User(AbstractUser):
     student_id = models.CharField(max_length=20, blank=True, null=True, unique=True)
     is_verified = models.BooleanField(default=False)
 
+    # Django's AbstractUser.email is NOT unique by default -- only the
+    # serializer-level check enforced this before. Enforcing it at the
+    # database level too closes a race-condition/consistency gap so a
+    # single email can never back two accounts (and therefore never two
+    # different roles).
+    email = models.EmailField(unique=True, blank=True)
+
     academic_year = models.CharField(
         max_length=20, choices=ACADEMIC_YEAR_CHOICES, blank=True, null=True,
         help_text="Student's current academic year (used for recommendations)."

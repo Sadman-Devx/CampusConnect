@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import GuestRoute from "./components/GuestRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdvisorRoute from "./components/AdvisorRoute";
+import StudentRoute from "./components/StudentRoute";
 import { AuthProvider } from "./context/AuthContext";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
@@ -23,9 +24,13 @@ function App() {
         </Route>
 
         <Route element={<ProtectedRoute />}>
+          {/* /dashboard is a role-router: student -> student dashboard, advisor/admin -> /advisor */}
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/dashboard/:slug" element={<WidgetDetailPage />} />
-          <Route path="/recommendations" element={<RecommendationsPage />} />
+
+          <Route element={<StudentRoute />}>
+            <Route path="/dashboard/:slug" element={<WidgetDetailPage />} />
+            <Route path="/recommendations" element={<RecommendationsPage />} />
+          </Route>
 
           <Route element={<AdvisorRoute />}>
             <Route path="/advisor" element={<AdvisorDashboardPage />} />

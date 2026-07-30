@@ -3,18 +3,37 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+# Admin accounts must never be self-service -- they're created via Django's
+# createsuperuser / admin panel / a controlled seed process only. Public
+# registration may only hand out these two roles.
+PUBLIC_REGISTRATION_ROLES = ('student', 'advisor')
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
+    role = serializers.ChoiceField(choices=PUBLIC_REGISTRATION_ROLES, default='student')
+    # Declared explicitly (instead of letting ModelSerializer infer it) so DRF's
+    # auto-generated UniqueValidator doesn't run -- we handle the uniqueness
+    # check ourselves in validate_email() with a case-insensitive comparison
+    # and a consistent, friendly error message.
+    email = serializers.EmailField()
 
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'password', 'student_id', 'role']
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+        if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("An account with this email already exists. Please log in.")
         return value
+
+    def validate(self, attrs):
+        # Student ID only makes sense for the student role -- an advisor
+        # account shouldn't carry one, so silently drop it rather than
+        # storing misleading data.
+        if attrs.get('role') == 'advisor':
+            attrs['student_id'] = None
+        return attrs
 
     def create(self, validated_data):
         user = User.objects.create_user(

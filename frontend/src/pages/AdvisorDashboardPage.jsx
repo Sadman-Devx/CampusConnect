@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import {
   fetchRiskScores,
   fetchAlerts,
@@ -33,6 +33,7 @@ function formatDateTime(value) {
 }
 
 export default function AdvisorDashboardPage() {
+  const { user, logout } = useAuth();
   const [students, setStudents] = useState([]);
   const [studentsStatus, setStudentsStatus] = useState("loading");
   const [riskFilter, setRiskFilter] = useState("");
@@ -130,31 +131,35 @@ export default function AdvisorDashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 animate-fade-up">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 transition-colors hover:text-green-700"
-        >
-          ← Back to dashboard
-        </Link>
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Advisor Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              At-risk students, predictive scores, and alerts that need follow-up.
+            <p className="mt-1 text-sm text-gray-600">
+              Welcome, <span className="font-medium">{user?.username}</span> — at-risk students,
+              predictive scores, and alerts that need follow-up.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleRecompute}
-            disabled={isRecomputing}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm
-              font-medium text-gray-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50
-              hover:text-green-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <RefreshIcon className={`h-4 w-4 ${isRecomputing ? "animate-spin" : ""}`} />
-            {isRecomputing ? "Recomputing…" : "Recompute all scores"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRecompute}
+              disabled={isRecomputing}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm
+                font-medium text-gray-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50
+                hover:text-green-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshIcon className={`h-4 w-4 ${isRecomputing ? "animate-spin" : ""}`} />
+              {isRecomputing ? "Recomputing…" : "Recompute all scores"}
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700
+                transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-700 active:scale-[0.98]"
+            >
+              Log out
+            </button>
+          </div>
         </div>
 
         {/* Summary stat cards */}

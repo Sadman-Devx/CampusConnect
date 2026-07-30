@@ -16,7 +16,13 @@ const initialForm = {
   student_id: "",
   password: "",
   confirmPassword: "",
+  role: "student",
 };
+
+const ROLE_OPTIONS = [
+  { key: "student", label: "Student" },
+  { key: "advisor", label: "Advisor" },
+];
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -27,16 +33,23 @@ export default function RegisterPage() {
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isStudent = form.role === "student";
+
   const handleChange = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
     setErrors((errs) => ({ ...errs, [field]: "" }));
+  };
+
+  const handleRoleChange = (role) => {
+    setForm((f) => ({ ...f, role, student_id: role === "student" ? f.student_id : "" }));
+    setErrors((errs) => ({ ...errs, student_id: "" }));
   };
 
   const validate = () => {
     const nextErrors = {
       username: validateUsername(form.username),
       email: validateEmail(form.email),
-      student_id: validateStudentId(form.student_id),
+      student_id: isStudent ? validateStudentId(form.student_id) : "",
       password: validatePassword(form.password),
       confirmPassword: validateConfirmPassword(form.password, form.confirmPassword),
     };
@@ -53,8 +66,9 @@ export default function RegisterPage() {
     const result = await register({
       username: form.username.trim(),
       email: form.email.trim(),
-      student_id: form.student_id.trim() || null,
+      student_id: isStudent ? form.student_id.trim() || null : null,
       password: form.password,
+      role: form.role,
     });
     setIsSubmitting(false);
 
@@ -83,6 +97,26 @@ export default function RegisterPage() {
         <p className="mb-6 text-sm text-gray-500">Join Campus Connect</p>
 
         <form onSubmit={handleSubmit} noValidate>
+          <div className="mb-4">
+            <span className="mb-1.5 block text-sm font-medium text-gray-700">I am a</span>
+            <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+              {ROLE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => handleRoleChange(opt.key)}
+                  className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-all duration-200 ${
+                    form.role === opt.key
+                      ? "bg-green-600 text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <FormField
             label="Username"
             value={form.username}
@@ -100,14 +134,16 @@ export default function RegisterPage() {
             autoComplete="email"
             required
           />
-          <FormField
-            label="Student ID"
-            value={form.student_id}
-            onChange={handleChange("student_id")}
-            error={errors.student_id}
-            placeholder="Optional"
-            autoComplete="off"
-          />
+          {isStudent && (
+            <FormField
+              label="Student ID"
+              value={form.student_id}
+              onChange={handleChange("student_id")}
+              error={errors.student_id}
+              placeholder="Optional"
+              autoComplete="off"
+            />
+          )}
           <FormField
             label="Password"
             type="password"

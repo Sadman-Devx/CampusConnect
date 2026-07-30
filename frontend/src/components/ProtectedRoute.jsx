@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import ChatWidget from "./ChatWidget";
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -21,7 +21,9 @@ export default function ProtectedRoute() {
   return (
     <>
       <Outlet />
-      <ChatWidget />
+      {/* The NLP support chatbot is a student-facing tool; advisors/admins
+          have their own dashboard and don't need it in their workspace. */}
+      {user?.role === "student" && <ChatWidget />}
     </>
   );
 }
