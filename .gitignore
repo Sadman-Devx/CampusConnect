@@ -11,3 +11,5 @@ dist/
 
 # General
 .DS_Store
+backend/db.sqlite3
+*.sqlite3
