@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db.models import OuterRef, Subquery
 from analytics.models import AdvisorAlert, RiskScore
+from rest_framework import permissions
 from analytics.permissions import IsAdvisorOrAdmin
+from .permissions import IsAdminOnly
 from analytics.serializers import AdvisorAlertSerializer, RiskScoreSerializer
 
 User = get_user_model()
@@ -13,6 +15,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
 
 from .models import AdvisingItem, FinancialAidItem, RegistrationItem, EventItem
 from .serializers import (
@@ -72,3 +75,27 @@ class AdminDashboardView(APIView):
             "recent_alerts": AdvisorAlertSerializer(recent_alerts, many=True).data,
         }
         return Response(data, status=status.HTTP_200_OK)
+
+
+
+
+
+class FinancialAidItemListCreateView(generics.ListCreateAPIView):
+    queryset = FinancialAidItem.objects.all().order_by('-id')
+    serializer_class = FinancialAidItemSerializer
+    permission_classes = [IsAdminOnly]
+
+class FinancialAidItemDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = FinancialAidItem.objects.all()
+    serializer_class = FinancialAidItemSerializer
+    permission_classes = [IsAdminOnly]
+
+class EventItemListCreateView(generics.ListCreateAPIView):
+    queryset = EventItem.objects.all().order_by('-date')
+    serializer_class = EventItemSerializer
+    permission_classes = [IsAdminOnly]
+
+class EventItemDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = EventItem.objects.all()
+    serializer_class = EventItemSerializer
+    permission_classes = [IsAdminOnly]

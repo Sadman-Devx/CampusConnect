@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import OpportunityManager from "../components/OpportunityManager";
 import {
   fetchRiskScores,
   fetchAlerts,
@@ -336,6 +337,7 @@ export default function AdvisorDashboardPage() {
               ))}
           </div>
         </section>
+        {user?.role === "admin" && <OpportunityManager />}
       </div>
 
       {selectedStudent && (
