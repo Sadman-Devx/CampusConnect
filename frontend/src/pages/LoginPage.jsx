@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormField from "../components/FormField";
 import { useAuth } from "../context/AuthContext";
-import { validateUsername } from "../utils/validators";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -22,7 +21,7 @@ export default function LoginPage() {
 
   const validate = () => {
     const nextErrors = {
-      username: validateUsername(form.username),
+      username: form.username.trim() ? "" : "Username or email is required.",
       password: form.password ? "" : "Password is required.",
     };
     setErrors(nextErrors);
@@ -35,7 +34,7 @@ export default function LoginPage() {
     if (!validate()) return;
 
     setIsSubmitting(true);
-    const result = await login(form);
+    const result = await login({ ...form, username: form.username.trim() });
     setIsSubmitting(false);
 
     if (result.success) {
@@ -53,7 +52,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} noValidate>
           <FormField
-            label="Username"
+            label="Username or email"
             value={form.username}
             onChange={handleChange("username")}
             error={errors.username}

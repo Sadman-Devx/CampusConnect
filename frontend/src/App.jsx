@@ -12,6 +12,8 @@ import RecommendationsPage from "./pages/RecommendationsPage";
 import AdvisorDashboardPage from "./pages/AdvisorDashboardPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ProfilePage from "./pages/ProfilePage";
+import TicketsPage from "./pages/TicketsPage";
 import "./App.css";
 
 function App() {
@@ -34,6 +36,8 @@ function App() {
           <Route element={<StudentRoute />}>
             <Route path="/dashboard/:slug" element={<WidgetDetailPage />} />
             <Route path="/recommendations" element={<RecommendationsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/tickets" element={<TicketsPage />} />
           </Route>
 
           <Route element={<AdvisorRoute />}>

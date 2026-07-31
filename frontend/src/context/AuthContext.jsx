@@ -66,9 +66,22 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  // Re-fetches /auth/me/ and updates the cached user -- used after mutations
+  // (e.g. profile edits) so the rest of the app sees the fresh data without
+  // requiring a full logout/login cycle.
+  const refreshUser = useCallback(async () => {
+    try {
+      const me = await fetchCurrentUser();
+      setUser(me);
+      return me;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ user, loading, error, login, register, logout, isAuthenticated: !!user }),
-    [user, loading, error, login, register, logout]
+    () => ({ user, loading, error, login, register, logout, refreshUser, isAuthenticated: !!user }),
+    [user, loading, error, login, register, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

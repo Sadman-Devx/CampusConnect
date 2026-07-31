@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardWidgets from "../components/DashboardWidgets";
-import { SparkleIcon, ChevronRightIcon } from "../components/icons/DashboardIcons";
+import { SparkleIcon, ChevronRightIcon, UserIcon, TicketIcon } from "../components/icons/DashboardIcons";
 
 export default function StudentDashboardPage() {
   const { user, logout } = useAuth();
@@ -53,6 +53,44 @@ export default function StudentDashboardPage() {
           </div>
           <ChevronRightIcon className="h-5 w-5 shrink-0 text-white transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Link
+            to="/profile"
+            className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200
+              bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md
+              hover:border-green-200 animate-pop-in animate-delay-4"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-700">
+                <UserIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">My Profile</h3>
+                <p className="text-xs text-gray-500">View and edit your info</p>
+              </div>
+            </div>
+            <ChevronRightIcon className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
+
+          <Link
+            to="/tickets"
+            className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200
+              bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md
+              hover:border-green-200 animate-pop-in animate-delay-4"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-700">
+                <TicketIcon className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">My Support Tickets</h3>
+                <p className="text-xs text-gray-500">Track questions escalated to staff</p>
+              </div>
+            </div>
+            <ChevronRightIcon className="h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </Link>
+        </div>
 
         <div className="mt-10">
           <h2 className="text-lg font-semibold text-gray-900">Quick access</h2>

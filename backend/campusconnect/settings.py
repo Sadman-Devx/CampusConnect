@@ -137,6 +137,17 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        # Generous enough for normal use, tight enough to blunt a scripted
+        # brute-force login attempt or registration-spam run against these
+        # publicly-reachable (AllowAny) endpoints.
+        'anon': '20/min',
+        'user': '120/min',
+    },
 }
 
 

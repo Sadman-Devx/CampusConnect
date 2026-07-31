@@ -27,8 +27,7 @@ export default function OpportunityManager() {
 
   const isAid = tab === "aid";
 
-  const load = () => {
-    setStatus("loading");
+  const fetchItems = () => {
     const fetcher = isAid ? fetchFinancialAidItems : fetchEventItems;
     fetcher()
       .then((data) => {
@@ -38,13 +37,23 @@ export default function OpportunityManager() {
       .catch(() => setStatus("error"));
   };
 
+  const load = () => {
+    setStatus("loading");
+    fetchItems();
+  };
+
   useEffect(() => {
-    setShowForm(false);
-    setEditingId(null);
-    setForm(isAid ? EMPTY_AID : EMPTY_EVENT);
-    load();
+    fetchItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
+
+  const handleTabChange = (key) => {
+    setStatus("loading");
+    setTab(key);
+    setShowForm(false);
+    setEditingId(null);
+    setForm(key === "aid" ? EMPTY_AID : EMPTY_EVENT);
+  };
 
   const openCreateForm = () => {
     setEditingId(null);
@@ -139,7 +148,7 @@ export default function OpportunityManager() {
               <button
                 key={t.key}
                 type="button"
-                onClick={() => setTab(t.key)}
+                onClick={() => handleTabChange(t.key)}
                 className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                   tab === t.key ? "bg-green-600 text-white shadow-sm" : "text-gray-600 hover:bg-gray-50"
                 }`}
