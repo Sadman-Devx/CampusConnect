@@ -70,6 +70,15 @@ export default function LoginPage() {
             required
           />
 
+          <div className="mb-4 text-right">
+            <Link
+              to="/forgot-password"
+              className="text-xs font-medium text-green-600 transition-colors duration-200 hover:text-green-700 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
           {submitError && (
             <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 animate-fade-in">
               {submitError}

@@ -134,10 +134,14 @@ export default function AdvisorDashboardPage() {
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 animate-fade-up">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Advisor Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {user?.role === "admin" ? "Admin Dashboard" : "Advisor Dashboard"}
+            </h1>
             <p className="mt-1 text-sm text-gray-600">
-              Welcome, <span className="font-medium">{user?.username}</span> — at-risk students,
-              predictive scores, and alerts that need follow-up.
+              Welcome, <span className="font-medium">{user?.username}</span> —{" "}
+              {user?.role === "admin"
+                ? "at-risk students, alerts, and institution-wide opportunities to manage."
+                : "at-risk students, predictive scores, and alerts that need follow-up."}
             </p>
           </div>
           <div className="flex items-center gap-2">

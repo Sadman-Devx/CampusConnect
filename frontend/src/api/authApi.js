@@ -13,3 +13,9 @@ export const fetchCurrentUser = () =>
 // recommendation engine can check scholarship & event eligibility.
 export const updateProfile = (payload) =>
   apiClient.patch("/auth/me/", payload).then((res) => res.data);
+
+export const requestPasswordReset = (email) =>
+  apiClient.post("/auth/password-reset/", { email }).then((res) => res.data);
+
+export const confirmPasswordReset = ({ uid, token, new_password }) =>
+  apiClient.post("/auth/password-reset/confirm/", { uid, token, new_password }).then((res) => res.data);
