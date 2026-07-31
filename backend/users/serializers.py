@@ -69,3 +69,34 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         if value is not None and not (0 <= value <= 4):
             raise serializers.ValidationError("GPA must be between 0.00 and 4.00.")
         return value
+
+
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.password_validation import validate_password
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        try:
+            uid = urlsafe_base64_decode(attrs['uid']).decode()
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            raise serializers.ValidationError("This reset link is invalid.")
+
+        if not default_token_generator.check_token(user, attrs['token']):
+            raise serializers.ValidationError("This reset link is invalid or has expired.")
+
+        validate_password(attrs['new_password'], user=user)
+
+        attrs['user'] = user
+        return attrs
