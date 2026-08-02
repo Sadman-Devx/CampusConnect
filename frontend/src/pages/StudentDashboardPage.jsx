@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardWidgets from "../components/DashboardWidgets";
+import EngagementWidget from "../components/EngagementWidget";
 import {
   SparkleIcon, ChevronRightIcon, UserIcon, TicketIcon, AdvisingIcon, ClipboardIcon,
 } from "../components/icons/DashboardIcons";
@@ -35,6 +36,8 @@ export default function StudentDashboardPage() {
             <dd className="font-medium text-gray-900">{user?.role}</dd>
           </div>
         </dl>
+
+        <EngagementWidget />
 
         <Link
           to="/recommendations"
