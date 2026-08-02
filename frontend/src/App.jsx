@@ -14,6 +14,8 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import TicketsPage from "./pages/TicketsPage";
+import AdvisingPage from "./pages/AdvisingPage";
+import ServiceRequestsPage from "./pages/ServiceRequestsPage";
 import "./App.css";
 
 function App() {
@@ -38,6 +40,8 @@ function App() {
             <Route path="/recommendations" element={<RecommendationsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/tickets" element={<TicketsPage />} />
+            <Route path="/advising" element={<AdvisingPage />} />
+            <Route path="/requests" element={<ServiceRequestsPage />} />
           </Route>
 
           <Route element={<AdvisorRoute />}>

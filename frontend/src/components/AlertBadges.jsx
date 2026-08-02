@@ -9,7 +9,10 @@ const STATUS_STYLES = {
   pending: "bg-red-50 text-red-700 ring-red-200",
   acknowledged: "bg-amber-50 text-amber-700 ring-amber-200",
   in_progress: "bg-amber-50 text-amber-700 ring-amber-200",
+  approved: "bg-green-50 text-green-700 ring-green-200",
   resolved: "bg-green-50 text-green-700 ring-green-200",
+  rejected: "bg-gray-100 text-gray-600 ring-gray-200",
+  cancelled: "bg-gray-100 text-gray-600 ring-gray-200",
 };
 
 function Pill({ style, children }) {

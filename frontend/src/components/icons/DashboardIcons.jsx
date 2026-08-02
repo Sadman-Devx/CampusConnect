@@ -125,3 +125,13 @@ export function TicketIcon({ className }) {
     </svg>
   );
 }
+
+export function ClipboardIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+      <path d="M8 10h8M8 14h8M8 18h5" />
+    </svg>
+  );
+}
