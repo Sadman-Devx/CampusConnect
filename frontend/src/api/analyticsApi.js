@@ -32,3 +32,9 @@ export const triggerRiskComputation = (studentId = null) =>
   apiClient
     .post("/analytics/compute/", studentId ? { student_id: studentId } : {})
     .then((res) => res.data);
+
+// Student-facing: the student's own score, reframed positively as
+// "engagement" on the UI side (see EngagementWidget.jsx) rather than
+// exposing the raw dropout-risk framing to the student themselves.
+export const fetchMyEngagement = () =>
+  apiClient.get("/analytics/risk-score/me/").then((res) => res.data);
