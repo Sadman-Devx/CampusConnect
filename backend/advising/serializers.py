@@ -6,6 +6,28 @@ from .models import AdvisorProfile, AdvisorAvailability, AppointmentBooking
 User = get_user_model()
 
 
+class StudentAssignmentSerializer(serializers.ModelSerializer):
+    """Admin-facing: student row with their current advisor assignment."""
+    advisor_username = serializers.CharField(source="advisor.username", read_only=True, default=None)
+
+    class Meta:
+        model = User
+        fields = ["id", "username", "email", "major", "academic_year", "advisor", "advisor_username"]
+        read_only_fields = ["id", "username", "email", "major", "academic_year", "advisor_username"]
+
+
+class AssignAdvisorSerializer(serializers.Serializer):
+    """advisor_id may be null to unassign a student."""
+    advisor_id = serializers.IntegerField(allow_null=True)
+
+    def validate_advisor_id(self, value):
+        if value is None:
+            return value
+        if not User.objects.filter(pk=value, role="advisor").exists():
+            raise serializers.ValidationError("That advisor doesn't exist.")
+        return value
+
+
 class AdvisorProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdvisorProfile

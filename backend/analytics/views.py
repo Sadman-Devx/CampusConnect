@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import AdvisorAlert, RiskScore
-from .permissions import IsAdvisorOrAdmin, IsSelfOrAdvisorOrAdmin
+from .permissions import IsAdvisorOrAdmin, IsSelfOrAssignedAdvisorOrAdmin
 from .serializers import (
     AdvisorAlertSerializer, AdvisorAlertStatusUpdateSerializer,
     RiskScoreHistoryPointSerializer, RiskScoreSerializer,
@@ -41,7 +41,7 @@ class MyRiskScoreView(APIView):
 
 
 class StudentRiskScoreDetailView(APIView):
-    permission_classes = [IsSelfOrAdvisorOrAdmin]
+    permission_classes = [IsSelfOrAssignedAdvisorOrAdmin]
     student_lookup_kwarg = 'student_id'
 
     def get(self, request, student_id):
@@ -75,6 +75,11 @@ class RiskScoreListView(ListAPIView):
         )
         queryset = RiskScore.objects.filter(id=Subquery(latest_per_student)).select_related('student')
 
+        # Privacy scoping: an advisor only sees their own assigned students'
+        # scores. Admins retain full oversight visibility.
+        if self.request.user.role == 'advisor':
+            queryset = queryset.filter(student__advisor_id=self.request.user.id)
+
         risk_level = self.request.query_params.get('risk_level')
         if risk_level:
             queryset = queryset.filter(risk_level=risk_level)
@@ -92,9 +97,16 @@ class ComputeRiskScoresView(APIView):
                     student = User.objects.get(pk=student_id, role='student')
                 except User.DoesNotExist:
                     return Response({"detail": "Student not found."}, status=status.HTTP_404_NOT_FOUND)
+                if request.user.role == 'advisor' and student.advisor_id != request.user.id:
+                    return Response(
+                        {"detail": "You can only recompute scores for students assigned to you."},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
                 results = [RiskScoringService.compute_for_student(student)]
             else:
                 students = User.objects.filter(role='student')
+                if request.user.role == 'advisor':
+                    students = students.filter(advisor_id=request.user.id)
                 results = RiskScoringService.compute_for_students(students)
         except RiskModelNotTrainedError:
             return _model_not_trained_response()
@@ -108,6 +120,12 @@ class AdvisorAlertListView(ListAPIView):
 
     def get_queryset(self):
         queryset = AdvisorAlert.objects.select_related('student', 'risk_score', 'acknowledged_by')
+
+        # Privacy scoping: an advisor only sees alerts for their own
+        # assigned students. Admins retain full oversight visibility.
+        if self.request.user.role == 'advisor':
+            queryset = queryset.filter(student__advisor_id=self.request.user.id)
+
         status_param = self.request.query_params.get('status')
         if status_param:
             queryset = queryset.filter(status=status_param)
@@ -118,13 +136,21 @@ class AdvisorAlertListView(ListAPIView):
 
 
 class AdvisorAlertDetailView(RetrieveUpdateAPIView):
-    queryset = AdvisorAlert.objects.select_related('student', 'risk_score', 'acknowledged_by')
     permission_classes = [IsAdvisorOrAdmin]
 
     def get_serializer_class(self):
         if self.request.method == 'PATCH':
             return AdvisorAlertStatusUpdateSerializer
         return AdvisorAlertSerializer
+
+    def get_queryset(self):
+        # Scoping the queryset (rather than an object-level permission check)
+        # means an advisor requesting another advisor's student's alert gets
+        # a plain 404, not a 403 -- it doesn't confirm the alert even exists.
+        queryset = AdvisorAlert.objects.select_related('student', 'risk_score', 'acknowledged_by')
+        if self.request.user.role == 'advisor':
+            queryset = queryset.filter(student__advisor_id=self.request.user.id)
+        return queryset
 
     def perform_update(self, serializer):
         new_status = serializer.validated_data.get('status')

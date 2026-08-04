@@ -100,6 +100,14 @@ export default function ProfilePage() {
                 <dd className="mt-0.5 font-medium text-gray-900">{user.student_id}</dd>
               </div>
             )}
+            {user?.role === "student" && (
+              <div>
+                <dt className="text-xs text-gray-500">Assigned Advisor</dt>
+                <dd className="mt-0.5 font-medium text-gray-900">
+                  {user.advisor_username || "Not assigned yet"}
+                </dd>
+              </div>
+            )}
           </dl>
         </section>
 

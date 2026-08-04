@@ -47,12 +47,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    advisor_username = serializers.CharField(source='advisor.username', read_only=True, default=None)
+
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'student_id', 'role', 'is_verified',
-            'academic_year', 'major', 'gpa',
+            'academic_year', 'major', 'gpa', 'advisor', 'advisor_username',
         ]
+        read_only_fields = ['advisor']
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):

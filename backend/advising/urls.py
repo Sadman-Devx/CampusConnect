@@ -5,9 +5,14 @@ from .views import (
     MySlotListCreateView, MySlotDetailView,
     MyBookingListCreateView, CancelBookingView,
     PendingBookingListView, DecideBookingView,
+    StudentAssignmentListView, AssignAdvisorView,
 )
 
 urlpatterns = [
+    # Admin-facing advisor<->student assignment
+    path('assignments/', StudentAssignmentListView.as_view(), name='student-assignment-list'),
+    path('assignments/<int:student_id>/', AssignAdvisorView.as_view(), name='assign-advisor'),
+
     # Advisor-facing profile
     path('profile/mine/', MyAdvisorProfileView.as_view(), name='my-advisor-profile'),
 

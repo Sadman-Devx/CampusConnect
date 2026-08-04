@@ -7,13 +7,37 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from .models import AdvisorProfile, AdvisorAvailability, AppointmentBooking
-from .permissions import IsAdvisorRole, IsStudentRole, IsOwnerAdvisor
+from .permissions import IsAdvisorRole, IsAdminRole, IsStudentRole, IsOwnerAdvisor
 from .serializers import (
     AdvisorProfileSerializer, AdvisorListSerializer, AdvisorAvailabilitySerializer,
     AppointmentBookingSerializer, BookingDecisionSerializer,
+    StudentAssignmentSerializer, AssignAdvisorSerializer,
 )
 
 User = get_user_model()
+
+
+class StudentAssignmentListView(generics.ListAPIView):
+    """Admin-facing: every student with their current advisor (or none)."""
+    serializer_class = StudentAssignmentSerializer
+    permission_classes = [IsAdminRole]
+    queryset = User.objects.filter(role="student").select_related("advisor").order_by("username")
+
+
+class AssignAdvisorView(APIView):
+    """Admin assigns (or clears, via advisor_id: null) a student's advisor."""
+    permission_classes = [IsAdminRole]
+
+    def patch(self, request, student_id):
+        student = User.objects.filter(pk=student_id, role="student").first()
+        if not student:
+            return Response({"detail": "Student not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = AssignAdvisorSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        student.advisor_id = serializer.validated_data["advisor_id"]
+        student.save(update_fields=["advisor"])
+        return Response(StudentAssignmentSerializer(student).data)
 
 
 class MyAdvisorProfileView(APIView):

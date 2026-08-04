@@ -43,5 +43,19 @@ class User(AbstractUser):
         help_text="Cumulative GPA on a 4.00 scale (used for recommendations)."
     )
 
+    # A student's assigned primary advisor. This gates who can see this
+    # student's risk-score/at-risk data (privacy-sensitive) -- it does NOT
+    # restrict which advisor a student can book an appointment with, since
+    # a student may legitimately want to meet an advisor other than their
+    # assigned one (e.g. for a second opinion, or if their advisor has no
+    # open slots). SET_NULL on delete so removing an advisor account never
+    # cascades into deleting student records.
+    advisor = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='assigned_students',
+        limit_choices_to={'role': 'advisor'},
+        help_text="The student's assigned advisor. Only this advisor (plus admins) can see the student's risk/analytics data.",
+    )
+
     def __str__(self):
         return f"{self.username} ({self.role})"

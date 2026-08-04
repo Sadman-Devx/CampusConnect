@@ -52,3 +52,13 @@ export const fetchMyAdvisorProfile = () =>
 
 export const updateMyAdvisorProfile = (payload) =>
   apiClient.patch("/advising/profile/mine/", payload).then((res) => res.data);
+
+// ---- Admin-facing: advisor <-> student assignment ----
+
+export const fetchStudentAssignments = () =>
+  apiClient.get("/advising/assignments/").then((res) => res.data);
+
+export const assignAdvisor = (studentId, advisorId) =>
+  apiClient
+    .patch(`/advising/assignments/${studentId}/`, { advisor_id: advisorId })
+    .then((res) => res.data);

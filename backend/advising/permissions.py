@@ -8,6 +8,13 @@ class IsAdvisorRole(BasePermission):
         return bool(request.user and request.user.is_authenticated and request.user.role == "advisor")
 
 
+class IsAdminRole(BasePermission):
+    """Only admin accounts can assign students to advisors."""
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.role == "admin")
+
+
 class IsStudentRole(BasePermission):
     """Only student accounts can browse slots and request bookings."""
 

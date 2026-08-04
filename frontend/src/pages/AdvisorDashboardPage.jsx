@@ -4,6 +4,7 @@ import OpportunityManager from "../components/OpportunityManager";
 import AvailabilityManager from "../components/AvailabilityManager";
 import ServiceRequestManager from "../components/ServiceRequestManager";
 import AdvisorProfileEditor from "../components/AdvisorProfileEditor";
+import StudentAssignmentManager from "../components/StudentAssignmentManager";
 import {
   fetchRiskScores,
   fetchAlerts,
@@ -347,6 +348,7 @@ export default function AdvisorDashboardPage() {
         {(user?.role === "advisor" || user?.role === "admin") && <ServiceRequestManager />}
         {user?.role === "advisor" && <AdvisorProfileEditor />}
         {user?.role === "advisor" && <AvailabilityManager />}
+        {user?.role === "admin" && <StudentAssignmentManager />}
         {user?.role === "admin" && <OpportunityManager />}
       </div>
 
