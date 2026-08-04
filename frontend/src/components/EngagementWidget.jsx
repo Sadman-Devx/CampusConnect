@@ -86,6 +86,13 @@ export default function EngagementWidget() {
 
   const tips = (data.top_factors || [])
     .map((factor) => FACTOR_TIPS[factor] || { tip: factor, link: null })
+    .filter(
+      (t, i, arr) =>
+        // Drop a tip if an earlier one already points to the exact same link --
+        // two factors can legitimately share one fix (e.g. "long gap since
+        // active" and "low engagement" both just mean "visit more often").
+        !t.link || arr.findIndex((other) => other.link?.to === t.link.to) === i
+    )
     .slice(0, 2);
 
   return (

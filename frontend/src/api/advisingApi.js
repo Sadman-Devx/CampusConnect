@@ -46,3 +46,9 @@ export const decideBooking = (bookingId, { status, advisor_note = "" }) =>
   apiClient
     .patch(`/advising/bookings/${bookingId}/decide/`, { status, advisor_note })
     .then((res) => res.data);
+
+export const fetchMyAdvisorProfile = () =>
+  apiClient.get("/advising/profile/mine/").then((res) => res.data);
+
+export const updateMyAdvisorProfile = (payload) =>
+  apiClient.patch("/advising/profile/mine/", payload).then((res) => res.data);

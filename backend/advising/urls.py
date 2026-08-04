@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    MyAdvisorProfileView,
     AdvisorListView, OpenSlotListView,
     MySlotListCreateView, MySlotDetailView,
     MyBookingListCreateView, CancelBookingView,
@@ -7,6 +8,9 @@ from .views import (
 )
 
 urlpatterns = [
+    # Advisor-facing profile
+    path('profile/mine/', MyAdvisorProfileView.as_view(), name='my-advisor-profile'),
+
     # Student-facing browse
     path('advisors/', AdvisorListView.as_view(), name='advisor-list'),
     path('slots/open/', OpenSlotListView.as_view(), name='open-slot-list'),

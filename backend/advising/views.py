@@ -6,21 +6,40 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import AdvisorAvailability, AppointmentBooking
+from .models import AdvisorProfile, AdvisorAvailability, AppointmentBooking
 from .permissions import IsAdvisorRole, IsStudentRole, IsOwnerAdvisor
 from .serializers import (
-    AdvisorListSerializer, AdvisorAvailabilitySerializer,
+    AdvisorProfileSerializer, AdvisorListSerializer, AdvisorAvailabilitySerializer,
     AppointmentBookingSerializer, BookingDecisionSerializer,
 )
 
 User = get_user_model()
 
 
+class MyAdvisorProfileView(APIView):
+    """Advisor views/edits their own bio, department, specialization, etc.
+    Created lazily on first save -- an advisor who never fills this in
+    simply has no AdvisorProfile row, and the list/detail views degrade
+    gracefully (blank fields) rather than erroring."""
+    permission_classes = [IsAdvisorRole]
+
+    def get(self, request):
+        profile, _ = AdvisorProfile.objects.get_or_create(advisor=request.user)
+        return Response(AdvisorProfileSerializer(profile).data)
+
+    def patch(self, request):
+        profile, _ = AdvisorProfile.objects.get_or_create(advisor=request.user)
+        serializer = AdvisorProfileSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
 class AdvisorListView(generics.ListAPIView):
     """Student-facing: browse advisors to pick one to book with."""
     serializer_class = AdvisorListSerializer
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.filter(role="advisor").order_by("username")
+    queryset = User.objects.filter(role="advisor").select_related("advisor_profile").order_by("username")
 
 
 class OpenSlotListView(generics.ListAPIView):

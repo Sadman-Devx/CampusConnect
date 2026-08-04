@@ -1,18 +1,35 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
-from .models import AdvisorAvailability, AppointmentBooking
+from .models import AdvisorProfile, AdvisorAvailability, AppointmentBooking
 
 User = get_user_model()
 
 
+class AdvisorProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdvisorProfile
+        fields = ["bio", "department", "specialization", "office_location", "years_experience", "updated_at"]
+        read_only_fields = ["updated_at"]
+
+
 class AdvisorListSerializer(serializers.ModelSerializer):
-    """Minimal advisor info for the student-facing "pick an advisor" list."""
+    """Rich advisor info for the student-facing "pick an advisor" list --
+    enough for a student to compare advisors and choose based on fit,
+    not just name and open-slot count."""
     open_slot_count = serializers.SerializerMethodField()
+    bio = serializers.CharField(source="advisor_profile.bio", read_only=True, default="")
+    department = serializers.CharField(source="advisor_profile.department", read_only=True, default="")
+    specialization = serializers.CharField(source="advisor_profile.specialization", read_only=True, default="")
+    office_location = serializers.CharField(source="advisor_profile.office_location", read_only=True, default="")
+    years_experience = serializers.IntegerField(source="advisor_profile.years_experience", read_only=True, default=None)
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "open_slot_count"]
+        fields = [
+            "id", "username", "email", "open_slot_count",
+            "bio", "department", "specialization", "office_location", "years_experience",
+        ]
 
     def get_open_slot_count(self, obj):
         today = timezone.localdate()

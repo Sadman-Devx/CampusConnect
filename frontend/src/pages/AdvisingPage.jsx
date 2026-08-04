@@ -112,10 +112,10 @@ export default function AdvisingPage() {
           Pick an advisor, choose an open time, and send a request. It's confirmed once they approve it.
         </p>
 
-        {/* Advisor picker */}
-        <div className="mt-6 flex flex-wrap gap-2">
+        {/* Advisor picker -- profile cards so a student can compare advisors and pick the best fit */}
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           {advisorsStatus === "loading" &&
-            [1, 2, 3].map((i) => <div key={i} className="h-9 w-32 animate-pulse rounded-lg bg-gray-100" />)}
+            [1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-gray-100" />)}
 
           {advisorsStatus === "error" && (
             <p className="text-sm text-red-600">Couldn&apos;t load advisors right now.</p>
@@ -126,25 +126,51 @@ export default function AdvisingPage() {
           )}
 
           {advisorsStatus === "ready" &&
-            advisors.map((advisor) => (
-              <button
-                key={advisor.id}
-                type="button"
-                onClick={() => handleSelectAdvisor(advisor.id)}
-                className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                  selectedAdvisorId === advisor.id
-                    ? "border-green-600 bg-green-600 text-white shadow-sm"
-                    : "border-gray-200 bg-white text-gray-700 hover:border-green-300 hover:bg-green-50"
-                }`}
-              >
-                {advisor.username}
-                <span
-                  className={`ml-2 text-xs ${selectedAdvisorId === advisor.id ? "text-green-100" : "text-gray-400"}`}
+            advisors.map((advisor) => {
+              const isSelected = selectedAdvisorId === advisor.id;
+              const hasProfile = advisor.bio || advisor.department || advisor.specialization;
+              return (
+                <button
+                  key={advisor.id}
+                  type="button"
+                  onClick={() => handleSelectAdvisor(advisor.id)}
+                  className={`flex flex-col items-start rounded-xl border p-4 text-left transition-all duration-200 ${
+                    isSelected
+                      ? "border-green-600 bg-green-50/60 shadow-sm"
+                      : "border-gray-200 bg-white hover:border-green-300 hover:bg-green-50/40"
+                  }`}
                 >
-                  {advisor.open_slot_count} open
-                </span>
-              </button>
-            ))}
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-gray-900">{advisor.username}</span>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                        advisor.open_slot_count > 0
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {advisor.open_slot_count} open
+                    </span>
+                  </div>
+
+                  {advisor.department && (
+                    <p className="mt-1 text-xs font-medium text-gray-500">{advisor.department}</p>
+                  )}
+                  {advisor.bio && (
+                    <p className="mt-1.5 line-clamp-2 text-xs text-gray-600">{advisor.bio}</p>
+                  )}
+                  {!hasProfile && (
+                    <p className="mt-1.5 text-xs text-gray-400">No profile info added yet.</p>
+                  )}
+
+                  <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-400">
+                    {advisor.specialization && <span>🎯 {advisor.specialization}</span>}
+                    {advisor.office_location && <span>📍 {advisor.office_location}</span>}
+                    {advisor.years_experience != null && <span>⏱ {advisor.years_experience} yrs</span>}
+                  </div>
+                </button>
+              );
+            })}
         </div>
 
         {/* Open slots for the selected advisor */}

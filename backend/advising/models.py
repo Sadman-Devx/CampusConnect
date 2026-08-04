@@ -2,6 +2,36 @@ from django.db import models
 from django.conf import settings
 
 
+class AdvisorProfile(models.Model):
+    """
+    FR-06 -- lets an advisor describe themselves (bio, department,
+    specialization) so a student picking between multiple advisors can
+    choose based on fit, not just name and open-slot count.
+
+    OneToOne rather than piling more fields onto User: this data is
+    advisor-only and would otherwise sit unused on every student/admin row.
+    Created lazily (get_or_create) the first time an advisor edits it, so
+    an advisor who hasn't filled anything in yet simply has no row.
+    """
+    advisor = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="advisor_profile",
+        limit_choices_to={"role": "advisor"},
+    )
+    bio = models.TextField(blank=True, max_length=1000)
+    department = models.CharField(max_length=150, blank=True)
+    specialization = models.CharField(
+        max_length=200, blank=True,
+        help_text="e.g. Academic advising, Career guidance, Course planning",
+    )
+    office_location = models.CharField(max_length=150, blank=True)
+    years_experience = models.PositiveIntegerField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile: {self.advisor.username}"
+
+
 class AdvisorAvailability(models.Model):
     """
     A single bookable time slot an advisor has opened up.

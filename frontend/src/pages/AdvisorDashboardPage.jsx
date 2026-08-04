@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import OpportunityManager from "../components/OpportunityManager";
 import AvailabilityManager from "../components/AvailabilityManager";
 import ServiceRequestManager from "../components/ServiceRequestManager";
+import AdvisorProfileEditor from "../components/AdvisorProfileEditor";
 import {
   fetchRiskScores,
   fetchAlerts,
@@ -344,6 +345,7 @@ export default function AdvisorDashboardPage() {
           </div>
         </section>
         {(user?.role === "advisor" || user?.role === "admin") && <ServiceRequestManager />}
+        {user?.role === "advisor" && <AdvisorProfileEditor />}
         {user?.role === "advisor" && <AvailabilityManager />}
         {user?.role === "admin" && <OpportunityManager />}
       </div>
