@@ -266,6 +266,13 @@ export default function AdvisingPage() {
                       <p className="text-sm font-medium text-gray-900">{booking.advisor_username}</p>
                       <AlertStatusBadge status={booking.status} />
                     </div>
+                    {(booking.advisor_department || booking.advisor_specialization || booking.advisor_office_location) && (
+                      <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-gray-400">
+                        {booking.advisor_department && <span>🏢 {booking.advisor_department}</span>}
+                        {booking.advisor_specialization && <span>🎯 {booking.advisor_specialization}</span>}
+                        {booking.advisor_office_location && <span>📍 {booking.advisor_office_location}</span>}
+                      </p>
+                    )}
                     <p className="mt-0.5 text-xs text-gray-500">
                       {formatDate(booking.slot_date)} · {formatTime(booking.slot_start_time)}–{formatTime(booking.slot_end_time)}
                     </p>

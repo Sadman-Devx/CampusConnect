@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
-import { fetchDashboardData } from "../api/dashboardApi";
+import { fetchDashboardData, applyToScholarship, enrollInCourse, dropCourse, rsvpToEvent, cancelRsvp } from "../api/dashboardApi";
 import { getWidgetBySlug } from "../config/dashboardWidgets";
 
 function formatDate(value) {
@@ -11,7 +11,36 @@ function formatDate(value) {
     : d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-function ItemRow({ slug, item }) {
+function ActionButton({ children, ...props }) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className="rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white transition-all duration-200
+        hover:bg-gray-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-gray-300"
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryButton({ children, ...props }) {
+  return (
+    <button
+      type="button"
+      {...props}
+      className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 transition-all
+        duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-700 active:scale-[0.98] disabled:opacity-50"
+    >
+      {children}
+    </button>
+  );
+}
+
+function ItemRow({ slug, item, onItemChange }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
   if (slug === "advising") {
     return (
       <>
@@ -30,6 +59,19 @@ function ItemRow({ slug, item }) {
   }
 
   if (slug === "financial-aid") {
+    const handleApply = async () => {
+      setIsSubmitting(true);
+      setError("");
+      try {
+        await applyToScholarship(item.id);
+        onItemChange(item.id, { is_applied: true });
+      } catch (err) {
+        setError(err.response?.data?.detail || "Couldn't submit your application.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
     return (
       <>
         <div className="flex items-center justify-between gap-3">
@@ -44,27 +86,114 @@ function ItemRow({ slug, item }) {
           <p className="mt-1 text-sm text-gray-500">Deadline: {formatDate(item.deadline)}</p>
         )}
         {item.description && <p className="mt-2 text-sm text-gray-600">{item.description}</p>}
+        {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+        <div className="mt-3">
+          {item.is_applied ? (
+            <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-green-200">
+              Applied
+            </span>
+          ) : (
+            <ActionButton onClick={handleApply} disabled={isSubmitting}>
+              {isSubmitting ? "Applying…" : "Apply"}
+            </ActionButton>
+          )}
+        </div>
       </>
     );
   }
 
   if (slug === "registration") {
+    const handleEnroll = async () => {
+      setIsSubmitting(true);
+      setError("");
+      try {
+        const updated = await enrollInCourse(item.id);
+        onItemChange(item.id, updated);
+      } catch (err) {
+        setError(err.response?.data?.detail || "Couldn't enroll in this course.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    const handleDrop = async () => {
+      setIsSubmitting(true);
+      setError("");
+      try {
+        const updated = await dropCourse(item.id);
+        onItemChange(item.id, updated);
+      } catch (err) {
+        setError(err.response?.data?.detail || "Couldn't drop this course.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    const isFull = item.seats_available <= 0 && !item.is_enrolled;
+
     return (
       <>
         <div className="flex items-center justify-between gap-3">
           <p className="font-medium text-gray-900">
             {item.course_code} — {item.course_title}
           </p>
-          <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              isFull ? "bg-gray-100 text-gray-500" : "bg-blue-50 text-blue-700"
+            }`}
+          >
             {item.seats_available} seats
           </span>
         </div>
         {item.schedule && <p className="mt-1 text-sm text-gray-500">{item.schedule}</p>}
+        {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+        <div className="mt-3">
+          {item.is_enrolled ? (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-green-200">
+                Enrolled
+              </span>
+              <SecondaryButton onClick={handleDrop} disabled={isSubmitting}>
+                {isSubmitting ? "Dropping…" : "Drop"}
+              </SecondaryButton>
+            </div>
+          ) : (
+            <ActionButton onClick={handleEnroll} disabled={isSubmitting || isFull}>
+              {isSubmitting ? "Registering…" : isFull ? "Full" : "Register"}
+            </ActionButton>
+          )}
+        </div>
       </>
     );
   }
 
   // events
+  const handleRsvp = async () => {
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await rsvpToEvent(item.id);
+      onItemChange(item.id, { is_rsvpd: true });
+    } catch (err) {
+      setError(err.response?.data?.detail || "Couldn't RSVP to this event.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelRsvp = async () => {
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await cancelRsvp(item.id);
+      onItemChange(item.id, { is_rsvpd: false });
+    } catch (err) {
+      setError(err.response?.data?.detail || "Couldn't cancel your RSVP.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <>
       <div className="flex items-center justify-between gap-3">
@@ -75,6 +204,23 @@ function ItemRow({ slug, item }) {
       </div>
       {item.location && <p className="mt-1 text-sm text-gray-500">{item.location}</p>}
       {item.description && <p className="mt-2 text-sm text-gray-600">{item.description}</p>}
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      <div className="mt-3">
+        {item.is_rsvpd ? (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700 ring-1 ring-green-200">
+              RSVP&apos;d
+            </span>
+            <SecondaryButton onClick={handleCancelRsvp} disabled={isSubmitting}>
+              {isSubmitting ? "Cancelling…" : "Cancel"}
+            </SecondaryButton>
+          </div>
+        ) : (
+          <ActionButton onClick={handleRsvp} disabled={isSubmitting}>
+            {isSubmitting ? "Sending…" : "RSVP"}
+          </ActionButton>
+        )}
+      </div>
     </>
   );
 }
@@ -109,6 +255,10 @@ export default function WidgetDetailPage() {
   if (!widget) {
     return <Navigate to="/dashboard" replace />;
   }
+
+  const handleItemChange = (itemId, patch) => {
+    setItems((prev) => prev.map((it) => (it.id === itemId ? { ...it, ...patch } : it)));
+  };
 
   const Icon = widget.icon;
 
@@ -165,7 +315,7 @@ export default function WidgetDetailPage() {
                   className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md animate-pop-in"
                   style={{ animationDelay: `${Math.min(i, 6) * 0.05}s` }}
                 >
-                  <ItemRow slug={slug} item={item} />
+                  <ItemRow slug={slug} item={item} onItemChange={handleItemChange} />
                 </li>
               ))}
             </ul>

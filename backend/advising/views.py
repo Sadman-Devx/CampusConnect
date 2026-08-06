@@ -116,7 +116,9 @@ class MyBookingListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsStudentRole]
 
     def get_queryset(self):
-        return AppointmentBooking.objects.filter(student=self.request.user).select_related("slot", "slot__advisor")
+        return AppointmentBooking.objects.filter(student=self.request.user).select_related(
+            "slot", "slot__advisor", "slot__advisor__advisor_profile"
+        )
 
     def perform_create(self, serializer):
         serializer.save(student=self.request.user)

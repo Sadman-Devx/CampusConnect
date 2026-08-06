@@ -9,3 +9,9 @@ class IsAdminOnly(BasePermission):
     """
     def has_permission(self, request, view):
         return bool(request.user and request.user.is_authenticated and request.user.role == "admin")
+
+
+class IsStudentRole(BasePermission):
+    """Enrollment/application/RSVP actions are student-only."""
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and request.user.role == "student")

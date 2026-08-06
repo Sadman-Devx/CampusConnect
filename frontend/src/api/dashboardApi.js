@@ -32,3 +32,30 @@ export const updateEventItem = (id, data) =>
 
 export const deleteEventItem = (id) =>
   apiClient.delete(`/dashboard/manage/events/${id}/`);
+
+// ---- Real course enrollment (student-facing) ----
+export const enrollInCourse = (courseId) =>
+  apiClient.post(`/dashboard/registration/${courseId}/enroll/`).then((res) => res.data);
+
+export const dropCourse = (courseId) =>
+  apiClient.post(`/dashboard/registration/${courseId}/drop/`).then((res) => res.data);
+
+export const fetchMyEnrollments = () =>
+  apiClient.get("/dashboard/registration/mine/").then((res) => res.data);
+
+// ---- Real scholarship applications (student-facing) ----
+export const applyToScholarship = (itemId) =>
+  apiClient.post(`/dashboard/financial-aid/${itemId}/apply/`).then((res) => res.data);
+
+export const fetchMyApplications = () =>
+  apiClient.get("/dashboard/financial-aid/mine/").then((res) => res.data);
+
+// ---- Real event RSVPs (student-facing) ----
+export const rsvpToEvent = (eventId) =>
+  apiClient.post(`/dashboard/events/${eventId}/rsvp/`).then((res) => res.data);
+
+export const cancelRsvp = (eventId) =>
+  apiClient.delete(`/dashboard/events/${eventId}/rsvp/`);
+
+export const fetchMyRsvps = () =>
+  apiClient.get("/dashboard/events/mine/").then((res) => res.data);

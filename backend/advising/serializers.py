@@ -89,16 +89,23 @@ class AppointmentBookingSerializer(serializers.ModelSerializer):
     slot_date = serializers.DateField(source="slot.date", read_only=True)
     slot_start_time = serializers.TimeField(source="slot.start_time", read_only=True)
     slot_end_time = serializers.TimeField(source="slot.end_time", read_only=True)
+    # Advisor context so "My Appointments" doesn't just show a bare username --
+    # same graceful-empty-string-default pattern as AdvisorListSerializer.
+    advisor_department = serializers.CharField(source="slot.advisor.advisor_profile.department", read_only=True, default="")
+    advisor_specialization = serializers.CharField(source="slot.advisor.advisor_profile.specialization", read_only=True, default="")
+    advisor_office_location = serializers.CharField(source="slot.advisor.advisor_profile.office_location", read_only=True, default="")
 
     class Meta:
         model = AppointmentBooking
         fields = [
             "id", "student", "student_username", "slot", "advisor_username",
+            "advisor_department", "advisor_specialization", "advisor_office_location",
             "slot_date", "slot_start_time", "slot_end_time",
             "status", "reason", "advisor_note", "requested_at", "decided_at",
         ]
         read_only_fields = [
             "id", "student", "student_username", "advisor_username",
+            "advisor_department", "advisor_specialization", "advisor_office_location",
             "slot_date", "slot_start_time", "slot_end_time",
             "status", "advisor_note", "requested_at", "decided_at",
         ]

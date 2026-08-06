@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { logWidgetClick } from "../api/dashboardApi";
+import { applyToScholarship, rsvpToEvent } from "../api/dashboardApi";
 import { CheckCircleIcon } from "./icons/DashboardIcons";
 
 function formatDate(value) {
@@ -20,19 +20,35 @@ function matchColor(pct) {
 export default function RecommendationCard({ item, kind, delayClass }) {
   // kind: "scholarship" | "event"
   const [isApplied, setIsApplied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const badge = matchColor(item.match_percentage);
   const isScholarship = kind === "scholarship";
   const actionLabel = isScholarship ? "Apply" : "RSVP";
   const detailSlug = isScholarship ? "financial-aid" : "events";
-  const widgetKey = isScholarship ? "financial_aid" : "events";
 
-  const handleApply = () => {
-    // Kono dedicated apply/RSVP backend endpoint nei ei MVP-e, tai
-    // interest-ta existing analytics endpoint diye record kori (recommendation
-    // ranking-er jonno signal hishebe kaje lagbe) ar optimistic UI dekhai.
-    logWidgetClick(widgetKey);
-    setIsApplied(true);
+  const handleApply = async () => {
+    setIsSubmitting(true);
+    setError("");
+    try {
+      if (isScholarship) {
+        await applyToScholarship(item.id);
+      } else {
+        await rsvpToEvent(item.id);
+      }
+      setIsApplied(true);
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      if (detail?.toLowerCase().includes("already")) {
+        // Already applied/RSVP'd from another screen -- treat as success, not an error.
+        setIsApplied(true);
+      } else {
+        setError(detail || "Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,20 +98,22 @@ export default function RecommendationCard({ item, kind, delayClass }) {
         </ul>
       )}
 
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+
       <div className="mt-auto flex items-center gap-2 pt-4">
         <button
           type="button"
           onClick={handleApply}
-          disabled={isApplied}
+          disabled={isApplied || isSubmitting}
           className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200
             active:scale-[0.98] ${
               isApplied
                 ? "cursor-default bg-green-50 text-green-700 ring-1 ring-green-200"
-                : "bg-gray-900 text-white hover:bg-gray-700"
+                : "bg-gray-900 text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             }`}
         >
           {isApplied && <CheckCircleIcon className="h-4 w-4" />}
-          {isApplied ? "Interest recorded" : actionLabel}
+          {isApplied ? (isScholarship ? "Applied" : "RSVP'd") : isSubmitting ? "Sending…" : actionLabel}
         </button>
         <button
           type="button"
