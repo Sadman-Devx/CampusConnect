@@ -13,3 +13,15 @@ export const fetchChatHistory = (sessionId) =>
 
 export const fetchMyTickets = () =>
   apiClient.get("/chatbot/tickets/").then((res) => res.data);
+
+// ---- Staff-facing (advisor/admin) ----
+
+export const fetchStaffTickets = (statusFilter = "") =>
+  apiClient
+    .get("/chatbot/tickets/staff/", { params: statusFilter ? { status: statusFilter } : {} })
+    .then((res) => res.data);
+
+export const updateTicketStatus = (ticketId, { status, staff_note = "" }) =>
+  apiClient
+    .patch(`/chatbot/tickets/${ticketId}/decide/`, { status, staff_note })
+    .then((res) => res.data);

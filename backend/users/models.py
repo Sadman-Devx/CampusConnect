@@ -42,6 +42,23 @@ class User(AbstractUser):
         max_digits=3, decimal_places=2, blank=True, null=True,
         help_text="Cumulative GPA on a 4.00 scale (used for recommendations)."
     )
+    # Self-reported by the student on ProfilePage, with no verification --
+    # an advisor deciding whether to approve a booking, or seeing this on
+    # a risk-score detail view, was trusting an unverified number. This
+    # pair of fields lets an assigned advisor/admin confirm it against an
+    # official record. Cleared automatically the moment the student edits
+    # their academic info again (see ProfileUpdateSerializer.update), so a
+    # "verified" badge never survives a silent change underneath it.
+    gpa_verified_by = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='gpa_verifications',
+        limit_choices_to={'role__in': ['advisor', 'admin']},
+        help_text="Advisor/admin who last confirmed this student's self-reported GPA.",
+    )
+    gpa_verified_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When the GPA above was last confirmed. Cleared automatically if the student edits their academic info.",
+    )
 
     # A student's assigned primary advisor. This gates who can see this
     # student's risk-score/at-risk data (privacy-sensitive) -- it does NOT

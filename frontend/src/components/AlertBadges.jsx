@@ -13,6 +13,7 @@ const STATUS_STYLES = {
   resolved: "bg-green-50 text-green-700 ring-green-200",
   rejected: "bg-gray-100 text-gray-600 ring-gray-200",
   cancelled: "bg-gray-100 text-gray-600 ring-gray-200",
+  reschedule_proposed: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
 function Pill({ style, children }) {

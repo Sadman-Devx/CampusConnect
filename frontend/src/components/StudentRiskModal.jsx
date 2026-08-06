@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchStudentRiskDetail } from "../api/analyticsApi";
+import { verifyStudentGpa } from "../api/authApi";
 import RiskBadge from "./RiskBadge";
 
 function formatDateTime(value) {
@@ -12,6 +13,7 @@ function formatDateTime(value) {
 export default function StudentRiskModal({ student, onClose }) {
   const [detail, setDetail] = useState(null);
   const [status, setStatus] = useState("loading"); // loading | ready | error
+  const [isVerifying, setIsVerifying] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,6 +30,20 @@ export default function StudentRiskModal({ student, onClose }) {
       cancelled = true;
     };
   }, [student.student_id]);
+
+  const handleVerify = async () => {
+    setIsVerifying(true);
+    try {
+      const updatedStudent = await verifyStudentGpa(student.student_id);
+      setDetail((prev) => (prev ? { ...prev, student: updatedStudent } : prev));
+    } catch {
+      // leave as-is; advisor can retry
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const academic = detail?.student;
 
   return (
     <div
@@ -70,6 +86,50 @@ export default function StudentRiskModal({ student, onClose }) {
 
         {status === "ready" && detail && (
           <>
+            {/* Academic profile -- self-reported by the student, with a
+                verification signal so an advisor knows whether it's been
+                checked against an official record. */}
+            {academic && (academic.major || academic.academic_year || academic.gpa != null) && (
+              <div className="mt-5 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700">
+                    {academic.major && <span>{academic.major}</span>}
+                    {academic.academic_year && <span>{academic.academic_year}</span>}
+                    {academic.gpa != null && (
+                      <span className="flex items-center gap-1.5">
+                        GPA {academic.gpa}
+                        {academic.gpa_verified_at ? (
+                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+                            ✓ Verified
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Self-reported
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  {academic.gpa != null && !academic.gpa_verified_at && (
+                    <button
+                      type="button"
+                      disabled={isVerifying}
+                      onClick={handleVerify}
+                      className="rounded-lg border border-green-200 bg-green-50 px-3 py-1 text-xs font-medium
+                        text-green-700 transition-all duration-200 hover:bg-green-100 active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {isVerifying ? "Verifying…" : "Verify GPA"}
+                    </button>
+                  )}
+                </div>
+                {academic.gpa_verified_at && (
+                  <p className="mt-1.5 text-xs text-gray-400">
+                    Verified by {academic.gpa_verified_by_username} · {formatDateTime(academic.gpa_verified_at)}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="mt-5 flex items-center gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
               <div>
                 <p className="text-3xl font-semibold text-gray-900">{detail.current.score.toFixed(0)}</p>

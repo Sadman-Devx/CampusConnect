@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.core.mail import send_mail
@@ -11,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .permissions import IsAssignedAdvisorOrAdmin
 from .serializers import (
     RegisterSerializer, UserSerializer, ProfileUpdateSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
@@ -47,6 +49,32 @@ class MeView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+
+
+class VerifyStudentGpaView(APIView):
+    """
+    Advisor (of this student) or admin confirms the student's self-reported
+    GPA matches an official record. This is a point-in-time signal, not a
+    lock -- it's cleared automatically the moment the student edits their
+    academic info again, so a verified badge always reflects the number
+    currently on screen.
+    """
+    permission_classes = [IsAuthenticated, IsAssignedAdvisorOrAdmin]
+
+    def post(self, request, student_id):
+        student = User.objects.filter(pk=student_id, role="student").first()
+        if not student:
+            return Response({"detail": "Student not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        self.check_object_permissions(request, student)
+
+        if student.gpa is None:
+            return Response({"detail": "This student hasn't entered a GPA yet."}, status=status.HTTP_400_BAD_REQUEST)
+
+        student.gpa_verified_at = timezone.now()
+        student.gpa_verified_by = request.user
+        student.save(update_fields=["gpa_verified_at", "gpa_verified_by"])
+        return Response(UserSerializer(student).data)
 
 
 class PasswordResetRequestView(APIView):

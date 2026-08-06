@@ -14,6 +14,11 @@ export const fetchCurrentUser = () =>
 export const updateProfile = (payload) =>
   apiClient.patch("/auth/me/", payload).then((res) => res.data);
 
+// Advisor-side gap fix: assigned advisor/admin confirms a student's
+// self-reported GPA against an official record.
+export const verifyStudentGpa = (studentId) =>
+  apiClient.post(`/auth/students/${studentId}/verify-gpa/`).then((res) => res.data);
+
 export const requestPasswordReset = (email) =>
   apiClient.post("/auth/password-reset/", { email }).then((res) => res.data);
 

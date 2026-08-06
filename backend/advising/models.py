@@ -37,9 +37,11 @@ class AdvisorAvailability(models.Model):
     A single bookable time slot an advisor has opened up.
 
     Kept deliberately simple for the MVP -- an advisor adds explicit
-    one-off slots (date + start/end time) rather than a recurring weekly
-    rule, which avoids the added complexity of generating/expiring
-    recurring instances, timezone edge cases, and exception handling.
+    one-off slots (date + start/end time). Slots can also be generated in
+    bulk from an AdvisorAvailabilityRecurringRule (see recurring.py) --
+    once generated, a recurring-sourced slot is just a normal row here and
+    the rest of the app (booking, calendar, is_open, etc.) treats it
+    identically to a manually added one.
     """
     advisor = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
@@ -72,6 +74,48 @@ class AdvisorAvailability(models.Model):
         return self.is_active and not self.has_approved_booking
 
 
+class AdvisorAvailabilityRecurringRule(models.Model):
+    """
+    Lets an advisor define a repeating weekly pattern ("every Monday
+    2-4 PM") instead of adding one-off AdvisorAvailability slots by hand
+    every week.
+
+    This model is the *rule*; concrete AdvisorAvailability rows are
+    generated from it (see recurring.sync_recurring_slots) for a rolling
+    horizon so the rest of the app never has to know a slot came from a
+    rule -- it's just a normal AdvisorAvailability row underneath.
+    """
+    WEEKDAY_CHOICES = (
+        (0, "Monday"), (1, "Tuesday"), (2, "Wednesday"), (3, "Thursday"),
+        (4, "Friday"), (5, "Saturday"), (6, "Sunday"),
+    )
+
+    advisor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="recurring_rules",
+        limit_choices_to={"role": "advisor"},
+    )
+    weekday = models.PositiveSmallIntegerField(choices=WEEKDAY_CHOICES)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    # Rule stops generating new slots after this date; slots already
+    # generated are left alone -- an advisor going on leave shouldn't
+    # retroactively cancel appointments already booked before they set
+    # the end date.
+    effective_until = models.DateField(
+        null=True, blank=True,
+        help_text="Optional last date this rule should generate slots for. Leave blank for no end date.",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["weekday", "start_time"]
+
+    def __str__(self):
+        return f"{self.advisor.username} — every {self.get_weekday_display()} {self.start_time}-{self.end_time}"
+
+
 class AppointmentBooking(models.Model):
     """
     A student's request to meet an advisor during one of their open slots.
@@ -82,16 +126,25 @@ class AppointmentBooking(models.Model):
     that same slot is automatically rejected. See AppointmentBookingSerializer
     / views.ApproveBookingView for the transaction that guarantees this
     can't race into two approved bookings for one slot.
+
+    An advisor can also, instead of a flat approve/reject, propose a
+    different one of their own open slots (proposed_slot) -- the booking
+    moves to STATUS_RESCHEDULE_PROPOSED and waits on the student to accept
+    or decline via views.RespondRescheduleView. The original slot is left
+    untouched until the student responds, so a decline just falls back to
+    pending.
     """
     STATUS_PENDING = "pending"
     STATUS_APPROVED = "approved"
     STATUS_REJECTED = "rejected"
     STATUS_CANCELLED = "cancelled"
+    STATUS_RESCHEDULE_PROPOSED = "reschedule_proposed"
     STATUS_CHOICES = (
         (STATUS_PENDING, "Pending"),
         (STATUS_APPROVED, "Approved"),
         (STATUS_REJECTED, "Rejected"),
         (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_RESCHEDULE_PROPOSED, "Reschedule proposed"),
     )
 
     student = models.ForeignKey(
@@ -100,7 +153,15 @@ class AppointmentBooking(models.Model):
         limit_choices_to={"role": "student"},
     )
     slot = models.ForeignKey(AdvisorAvailability, on_delete=models.CASCADE, related_name="bookings")
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    # Advisor's alternate offer when they can't take the originally
+    # requested slot. Only meaningful while status == reschedule_proposed;
+    # cleared again once the student accepts or declines.
+    proposed_slot = models.ForeignKey(
+        AdvisorAvailability, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="reschedule_proposals",
+        help_text="Alternate slot the advisor has proposed instead of the originally requested one.",
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     reason = models.CharField(max_length=300, blank=True, help_text="What the student wants to discuss.")
     advisor_note = models.CharField(max_length=300, blank=True, help_text="Advisor's note when approving/rejecting.")
     requested_at = models.DateTimeField(auto_now_add=True)

@@ -120,6 +120,12 @@ export default function TicketsPage() {
                   <AlertStatusBadge status={ticket.status} />
                 </div>
                 <p className="mt-1.5 text-sm text-gray-600">{ticket.query_text}</p>
+                {ticket.staff_note && (
+                  <p className="mt-2 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                    <span className="font-medium text-gray-700">Staff reply: </span>
+                    {ticket.staff_note}
+                  </p>
+                )}
                 <p className="mt-2 text-xs text-gray-400">{formatDateTime(ticket.created_at)}</p>
               </div>
             ))}

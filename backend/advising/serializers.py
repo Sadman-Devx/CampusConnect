@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
-from .models import AdvisorProfile, AdvisorAvailability, AppointmentBooking
+from .models import (
+    AdvisorProfile, AdvisorAvailability, AppointmentBooking,
+    AdvisorAvailabilityRecurringRule,
+)
 
 User = get_user_model()
 
@@ -82,6 +85,28 @@ class AdvisorAvailabilitySerializer(serializers.ModelSerializer):
         return attrs
 
 
+class AdvisorAvailabilityRecurringRuleSerializer(serializers.ModelSerializer):
+    """Advisor-facing: define a repeating weekly availability rule
+    (e.g. "every Monday 2-4 PM"). Concrete AdvisorAvailability rows are
+    generated from this by recurring.sync_recurring_slots."""
+    weekday_display = serializers.CharField(source="get_weekday_display", read_only=True)
+
+    class Meta:
+        model = AdvisorAvailabilityRecurringRule
+        fields = [
+            "id", "weekday", "weekday_display", "start_time", "end_time",
+            "effective_until", "is_active", "created_at",
+        ]
+        read_only_fields = ["id", "weekday_display", "created_at"]
+
+    def validate(self, attrs):
+        start = attrs.get("start_time", getattr(self.instance, "start_time", None))
+        end = attrs.get("end_time", getattr(self.instance, "end_time", None))
+        if start and end and start >= end:
+            raise serializers.ValidationError("End time must be after start time.")
+        return attrs
+
+
 class AppointmentBookingSerializer(serializers.ModelSerializer):
     """Used for both the student's own booking list and the advisor's pending queue."""
     student_username = serializers.CharField(source="student.username", read_only=True)
@@ -95,20 +120,43 @@ class AppointmentBookingSerializer(serializers.ModelSerializer):
     advisor_specialization = serializers.CharField(source="slot.advisor.advisor_profile.specialization", read_only=True, default="")
     advisor_office_location = serializers.CharField(source="slot.advisor.advisor_profile.office_location", read_only=True, default="")
 
+    # Advisor-side gap fix: student's academic profile right on the
+    # booking, so an advisor isn't approving/rejecting blind.
+    student_major = serializers.CharField(source="student.major", read_only=True, default="")
+    student_academic_year = serializers.CharField(source="student.academic_year", read_only=True, default="")
+    student_gpa = serializers.DecimalField(source="student.gpa", read_only=True, max_digits=3, decimal_places=2, default=None)
+    # Whether that GPA has been confirmed by the student's assigned
+    # advisor/admin against an official record -- see users.VerifyStudentGpaView.
+    student_gpa_verified = serializers.SerializerMethodField()
+
+    # Reschedule-proposal context, populated only when status == reschedule_proposed.
+    proposed_slot_date = serializers.DateField(source="proposed_slot.date", read_only=True, default=None)
+    proposed_slot_start_time = serializers.TimeField(source="proposed_slot.start_time", read_only=True, default=None)
+    proposed_slot_end_time = serializers.TimeField(source="proposed_slot.end_time", read_only=True, default=None)
+
     class Meta:
         model = AppointmentBooking
         fields = [
-            "id", "student", "student_username", "slot", "advisor_username",
+            "id", "student", "student_username",
+            "student_major", "student_academic_year", "student_gpa", "student_gpa_verified",
+            "slot", "advisor_username",
             "advisor_department", "advisor_specialization", "advisor_office_location",
             "slot_date", "slot_start_time", "slot_end_time",
+            "proposed_slot", "proposed_slot_date", "proposed_slot_start_time", "proposed_slot_end_time",
             "status", "reason", "advisor_note", "requested_at", "decided_at",
         ]
         read_only_fields = [
-            "id", "student", "student_username", "advisor_username",
+            "id", "student", "student_username",
+            "student_major", "student_academic_year", "student_gpa", "student_gpa_verified",
+            "advisor_username",
             "advisor_department", "advisor_specialization", "advisor_office_location",
             "slot_date", "slot_start_time", "slot_end_time",
+            "proposed_slot", "proposed_slot_date", "proposed_slot_start_time", "proposed_slot_end_time",
             "status", "advisor_note", "requested_at", "decided_at",
         ]
+
+    def get_student_gpa_verified(self, obj):
+        return obj.student.gpa is not None and obj.student.gpa_verified_at is not None
 
     def validate_slot(self, slot):
         if not slot.is_open:
@@ -120,3 +168,14 @@ class BookingDecisionSerializer(serializers.Serializer):
     """Advisor approves or rejects a pending request."""
     status = serializers.ChoiceField(choices=[AppointmentBooking.STATUS_APPROVED, AppointmentBooking.STATUS_REJECTED])
     advisor_note = serializers.CharField(max_length=300, required=False, allow_blank=True)
+
+
+class ProposeRescheduleSerializer(serializers.Serializer):
+    """Advisor proposes one of their own open slots instead of the originally requested one."""
+    proposed_slot = serializers.PrimaryKeyRelatedField(queryset=AdvisorAvailability.objects.all())
+    advisor_note = serializers.CharField(max_length=300, required=False, allow_blank=True)
+
+
+class RescheduleResponseSerializer(serializers.Serializer):
+    """Student accepts or declines the advisor's proposed alternate slot."""
+    accept = serializers.BooleanField()

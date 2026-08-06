@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   fetchAdvisors, fetchOpenSlots, fetchMyBookings,
-  requestBooking, cancelBooking,
+  requestBooking, cancelBooking, respondToReschedule,
 } from "../api/advisingApi";
 import { AlertStatusBadge } from "../components/AlertBadges";
 
@@ -34,6 +34,7 @@ export default function AdvisingPage() {
   const [bookings, setBookings] = useState([]);
   const [bookingsStatus, setBookingsStatus] = useState("loading");
   const [cancellingId, setCancellingId] = useState(null);
+  const [respondingId, setRespondingId] = useState(null);
 
   useEffect(() => {
     fetchAdvisors()
@@ -94,6 +95,18 @@ export default function AdvisingPage() {
       // leave as-is, advisor can retry
     } finally {
       setCancellingId(null);
+    }
+  };
+
+  const handleRescheduleResponse = async (bookingId, accept) => {
+    setRespondingId(bookingId);
+    try {
+      await respondToReschedule(bookingId, accept);
+      loadBookings();
+    } catch {
+      // leave as-is; student can retry
+    } finally {
+      setRespondingId(null);
     }
   };
 
@@ -278,6 +291,33 @@ export default function AdvisingPage() {
                     </p>
                     {booking.advisor_note && (
                       <p className="mt-1 text-sm text-gray-600">Note: {booking.advisor_note}</p>
+                    )}
+
+                    {booking.status === "reschedule_proposed" && booking.proposed_slot_date && (
+                      <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
+                        <p className="font-medium">
+                          Your advisor proposed a new time: {formatDate(booking.proposed_slot_date)} ·{" "}
+                          {formatTime(booking.proposed_slot_start_time)}–{formatTime(booking.proposed_slot_end_time)}
+                        </p>
+                        <div className="mt-2 flex gap-2">
+                          <button
+                            type="button"
+                            disabled={respondingId === booking.id}
+                            onClick={() => handleRescheduleResponse(booking.id, true)}
+                            className="rounded-lg bg-amber-600 px-3 py-1 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
+                          >
+                            Accept new time
+                          </button>
+                          <button
+                            type="button"
+                            disabled={respondingId === booking.id}
+                            onClick={() => handleRescheduleResponse(booking.id, false)}
+                            className="rounded-lg border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
                   {(booking.status === "pending" || booking.status === "approved") && (

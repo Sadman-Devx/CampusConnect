@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from users.serializers import UserSerializer
+
 from .models import AdvisorAlert, RiskScore
 from .permissions import IsAdvisorOrAdmin, IsSelfOrAssignedAdvisorOrAdmin
 from .serializers import (
@@ -59,6 +61,11 @@ class StudentRiskScoreDetailView(APIView):
 
         history = RiskScore.objects.filter(student=student).order_by('-computed_at')[:HISTORY_LIMIT]
         return Response({
+            # Academic profile alongside the score -- lets the detail view
+            # (StudentRiskModal on the frontend) show major/year/GPA and
+            # the GPA verification status without a second API call, reusing
+            # this endpoint's existing self/assigned-advisor/admin scoping.
+            "student": UserSerializer(student).data,
             "current": RiskScoreSerializer(latest).data,
             "history": RiskScoreHistoryPointSerializer(history, many=True).data,
         }, status=status.HTTP_200_OK)

@@ -48,14 +48,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     advisor_username = serializers.CharField(source='advisor.username', read_only=True, default=None)
+    gpa_verified_by_username = serializers.CharField(source='gpa_verified_by.username', read_only=True, default=None)
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'email', 'student_id', 'role', 'is_verified',
-            'academic_year', 'major', 'gpa', 'advisor', 'advisor_username',
+            'academic_year', 'major', 'gpa', 'gpa_verified_at', 'gpa_verified_by_username',
+            'advisor', 'advisor_username',
         ]
-        read_only_fields = ['advisor']
+        read_only_fields = ['advisor', 'gpa_verified_at', 'gpa_verified_by_username']
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
@@ -72,6 +74,16 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         if value is not None and not (0 <= value <= 4):
             raise serializers.ValidationError("GPA must be between 0.00 and 4.00.")
         return value
+
+    def update(self, instance, validated_data):
+        # Any edit through this serializer invalidates a prior GPA
+        # verification -- a "verified" badge should only ever reflect the
+        # number an advisor/admin actually checked, never a stale one.
+        if instance.gpa_verified_at is not None:
+            instance.gpa_verified_at = None
+            instance.gpa_verified_by = None
+            instance.save(update_fields=["gpa_verified_at", "gpa_verified_by"])
+        return super().update(instance, validated_data)
 
 
 from django.contrib.auth.tokens import default_token_generator

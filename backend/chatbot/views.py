@@ -4,9 +4,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from .models import ChatSession, ChatMessage, SupportTicket, FAQEntry
+from .permissions import IsStaffRole
 from .serializers import (
     ChatSessionSerializer, SendMessageSerializer,
-    SupportTicketSerializer, FAQEntrySerializer
+    SupportTicketSerializer, StaffSupportTicketSerializer, StaffTicketStatusUpdateSerializer,
+    FAQEntrySerializer,
 )
 from .intent_classifier import classify, CONFIDENCE_THRESHOLD
 
@@ -111,6 +113,43 @@ class MyTicketsView(generics.ListAPIView):
 
     def get_queryset(self):
         return SupportTicket.objects.filter(user=self.request.user).order_by('-created_at')
+
+
+class StaffTicketListView(generics.ListAPIView):
+    """
+    Advisor/admin-facing: chatbot-escalated tickets across all students,
+    optionally filtered by status. This was previously missing entirely --
+    a ticket had no way to be seen or resolved from the app itself.
+    """
+    serializer_class = StaffSupportTicketSerializer
+    permission_classes = [IsStaffRole]
+
+    def get_queryset(self):
+        qs = SupportTicket.objects.all().select_related("user")
+        status_filter = self.request.query_params.get("status")
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        return qs.order_by('-created_at')
+
+
+class UpdateTicketStatusView(APIView):
+    """Advisor/admin moves a ticket through pending -> in_progress -> resolved,
+    optionally leaving a note the student will see on their own ticket."""
+    permission_classes = [IsStaffRole]
+
+    def patch(self, request, pk):
+        serializer = StaffTicketStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        ticket = SupportTicket.objects.filter(pk=pk).first()
+        if not ticket:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        ticket.status = serializer.validated_data["status"]
+        if "staff_note" in serializer.validated_data:
+            ticket.staff_note = serializer.validated_data["staff_note"]
+        ticket.save(update_fields=["status", "staff_note", "updated_at"])
+        return Response(StaffSupportTicketSerializer(ticket).data)
 
 
 class FAQListView(generics.ListAPIView):

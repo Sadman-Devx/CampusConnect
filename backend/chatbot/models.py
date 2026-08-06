@@ -48,7 +48,14 @@ class ChatMessage(models.Model):
 
 
 class SupportTicket(models.Model):
-    """Confidence threshold-er nichey gele — staff queue-te escalate kora ticket"""
+    """
+    Confidence threshold-er nichey gele — staff queue-te escalate kora ticket.
+
+    staff_note / updated_at added so a ticket has somewhere to go once
+    escalated -- previously there was no staff-facing view at all, so a
+    ticket sat at 'pending' forever unless someone opened Django admin by
+    hand. Mirrors servicerequests.ServiceRequest's staff_note pattern.
+    """
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
@@ -58,7 +65,12 @@ class SupportTicket(models.Model):
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name="tickets")
     query_text = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    staff_note = models.CharField(max_length=500, blank=True, help_text="Staff's reply, visible to the student on their ticket.")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Ticket #{self.id} - {self.status}"

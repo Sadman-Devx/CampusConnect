@@ -21,6 +21,11 @@ export const requestBooking = ({ slotId, reason }) =>
 export const cancelBooking = (bookingId) =>
   apiClient.post(`/advising/bookings/mine/${bookingId}/cancel/`).then((res) => res.data);
 
+export const respondToReschedule = (bookingId, accept) =>
+  apiClient
+    .post(`/advising/bookings/mine/${bookingId}/reschedule/respond/`, { accept })
+    .then((res) => res.data);
+
 // ---- Advisor-facing: manage slots & decide requests ----
 
 export const fetchMySlots = () =>
@@ -42,9 +47,17 @@ export const deactivateSlot = (slotId) =>
 export const fetchPendingBookings = () =>
   apiClient.get("/advising/bookings/pending/").then((res) => res.data);
 
+export const fetchPendingBookingCount = () =>
+  apiClient.get("/advising/bookings/pending/count/").then((res) => res.data);
+
 export const decideBooking = (bookingId, { status, advisor_note = "" }) =>
   apiClient
     .patch(`/advising/bookings/${bookingId}/decide/`, { status, advisor_note })
+    .then((res) => res.data);
+
+export const proposeReschedule = (bookingId, { proposed_slot, advisor_note = "" }) =>
+  apiClient
+    .patch(`/advising/bookings/${bookingId}/propose-reschedule/`, { proposed_slot, advisor_note })
     .then((res) => res.data);
 
 export const fetchMyAdvisorProfile = () =>
@@ -52,6 +65,22 @@ export const fetchMyAdvisorProfile = () =>
 
 export const updateMyAdvisorProfile = (payload) =>
   apiClient.patch("/advising/profile/mine/", payload).then((res) => res.data);
+
+// ---- Recurring availability rules ----
+
+export const fetchRecurringRules = () =>
+  apiClient.get("/advising/slots/mine/recurring/").then((res) => res.data);
+
+export const createRecurringRule = ({ weekday, start_time, end_time, effective_until }) =>
+  apiClient
+    .post("/advising/slots/mine/recurring/", { weekday, start_time, end_time, effective_until })
+    .then((res) => res.data);
+
+export const updateRecurringRule = (ruleId, payload) =>
+  apiClient.patch(`/advising/slots/mine/recurring/${ruleId}/`, payload).then((res) => res.data);
+
+export const deleteRecurringRule = (ruleId) =>
+  apiClient.delete(`/advising/slots/mine/recurring/${ruleId}/`).then((res) => res.data);
 
 // ---- Admin-facing: advisor <-> student assignment ----
 
