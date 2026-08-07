@@ -7,21 +7,12 @@ import {
 } from "../components/icons/DashboardIcons";
 
 export default function StudentDashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 animate-fade-up">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-          <button
-            onClick={logout}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium
-              text-gray-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50 hover:text-green-700 active:scale-[0.98]"
-          >
-            Log out
-          </button>
-        </div>
+        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
         <p className="mt-4 text-gray-600">
           Welcome, <span className="font-medium">{user?.username}</span> — this route is
           protected and only reachable while authenticated.

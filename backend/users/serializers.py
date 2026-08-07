@@ -49,6 +49,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     advisor_username = serializers.CharField(source='advisor.username', read_only=True, default=None)
     gpa_verified_by_username = serializers.CharField(source='gpa_verified_by.username', read_only=True, default=None)
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -56,19 +57,36 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'student_id', 'role', 'is_verified',
             'academic_year', 'major', 'gpa', 'gpa_verified_at', 'gpa_verified_by_username',
             'advisor', 'advisor_username',
+            'full_name', 'phone_number', 'program', 'campus', 'date_of_birth',
+            'gender', 'blood_group', 'avatar_url',
         ]
-        read_only_fields = ['advisor', 'gpa_verified_at', 'gpa_verified_by_username']
+        read_only_fields = ['advisor', 'gpa_verified_at', 'gpa_verified_by_username', 'avatar_url']
+
+    def get_avatar_url(self, obj):
+        request = self.context.get('request')
+        if not obj.avatar:
+            return None
+        url = obj.avatar.url
+        return request.build_absolute_uri(url) if request else url
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     """
     Restricted serializer used by students to fill in the academic profile
     (major / academic_year / gpa) that powers the FR-04 recommendation
-    engine. Does not allow changing role, username or verification status.
+    engine, plus the descriptive profile-card fields from ProfilePage
+    (full_name / phone_number / program / campus / date_of_birth / gender /
+    blood_group). Does not allow changing role, username, email, student_id,
+    or verification status -- avatar is uploaded separately through
+    AvatarUploadView since this serializer only handles JSON PATCH bodies.
     """
     class Meta:
         model = User
-        fields = ['academic_year', 'major', 'gpa']
+        fields = [
+            'academic_year', 'major', 'gpa',
+            'full_name', 'phone_number', 'program', 'campus',
+            'date_of_birth', 'gender', 'blood_group',
+        ]
 
     def validate_gpa(self, value):
         if value is not None and not (0 <= value <= 4):
@@ -76,14 +94,31 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        # Any edit through this serializer invalidates a prior GPA
-        # verification -- a "verified" badge should only ever reflect the
-        # number an advisor/admin actually checked, never a stale one.
         if instance.gpa_verified_at is not None:
             instance.gpa_verified_at = None
             instance.gpa_verified_by = None
             instance.save(update_fields=["gpa_verified_at", "gpa_verified_by"])
         return super().update(instance, validated_data)
+
+
+ALLOWED_AVATAR_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+MAX_AVATAR_SIZE_MB = 5
+
+
+class AvatarUploadSerializer(serializers.Serializer):
+    """Write-only input for AvatarUploadView. Mirrors the validation
+    pattern used by ServiceRequestAttachmentUploadSerializer."""
+    avatar = serializers.FileField()
+
+    def validate_avatar(self, value):
+        ext = value.name.rsplit(".", 1)[-1].lower() if "." in value.name else ""
+        if ext not in ALLOWED_AVATAR_EXTENSIONS:
+            raise serializers.ValidationError(
+                f"Unsupported file type '.{ext}'. Allowed: {', '.join(sorted(ALLOWED_AVATAR_EXTENSIONS))}."
+            )
+        if value.size > MAX_AVATAR_SIZE_MB * 1024 * 1024:
+            raise serializers.ValidationError(f"File is too large. Max size is {MAX_AVATAR_SIZE_MB}MB.")
+        return value    
 
 
 from django.contrib.auth.tokens import default_token_generator

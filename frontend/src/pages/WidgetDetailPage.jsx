@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { fetchDashboardData, applyToScholarship, enrollInCourse, dropCourse, rsvpToEvent, cancelRsvp } from "../api/dashboardApi";
 import { getWidgetBySlug } from "../config/dashboardWidgets";
 
@@ -265,14 +265,7 @@ export default function WidgetDetailPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 animate-fade-up">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 transition-colors hover:text-green-700"
-        >
-          ← Back to dashboard
-        </Link>
-
-        <div className="mt-5 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <span
             className={`flex h-11 w-11 items-center justify-center rounded-lg ${widget.theme.iconBg} ${widget.theme.iconText}`}
           >

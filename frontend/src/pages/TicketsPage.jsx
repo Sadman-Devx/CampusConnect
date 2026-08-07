@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { fetchMyTickets } from "../api/chatbotApi";
 import { AlertStatusBadge } from "../components/AlertBadges";
 
@@ -53,14 +52,7 @@ export default function TicketsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 animate-fade-up">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 transition-colors hover:text-green-700"
-        >
-          ← Back to dashboard
-        </Link>
-
-        <h1 className="mt-5 text-2xl font-semibold text-gray-900">My Support Tickets</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">My Support Tickets</h1>
         <p className="mt-1 text-sm text-gray-500">
           Questions the chatbot escalated to our staff team, and their status.
         </p>

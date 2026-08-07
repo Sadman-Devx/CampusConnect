@@ -60,6 +60,76 @@ class User(AbstractUser):
         help_text="When the GPA above was last confirmed. Cleared automatically if the student edits their academic info.",
     )
 
+    # Profile-completeness fields (ProfilePage). Separate from `major`,
+    # `academic_year` and `gpa` above -- those feed the FR-04 recommendation
+    # engine and are matched against exact eligibility strings (e.g.
+    # "Computer Science"), while these are purely descriptive/contact info
+    # for the student's own profile card. All nullable/optional: a student
+    # shouldn't be locked out of the app for not filling these in, and some
+    # (date_of_birth, gender, blood_group) are sensitive enough that many
+    # students will legitimately choose not to share them.
+    full_name = models.CharField(
+        max_length=150, blank=True,
+        help_text="Student's real/display name -- distinct from the login username.",
+    )
+    phone_number = models.CharField(max_length=20, blank=True)
+    # Full degree/program title, e.g. "B.Sc. in Software Engineering" --
+    # kept separate from `major` (which the recommendation engine matches
+    # against scholarship/event eligible_majors lists like "Computer
+    # Science") since the two serve different purposes and granularities.
+    program = models.CharField(max_length=150, blank=True, null=True)
+    campus = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text="Short campus/location label, e.g. 'DSC'.",
+    )
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=30, blank=True, null=True)
+
+    BLOOD_GROUP_CHOICES = (
+        ('A+', 'A+'), ('A-', 'A-'),
+        ('B+', 'B+'), ('B-', 'B-'),
+        ('AB+', 'AB+'), ('AB-', 'AB-'),
+        ('O+', 'O+'), ('O-', 'O-'),
+    )
+    blood_group = models.CharField(
+        max_length=3, choices=BLOOD_GROUP_CHOICES, blank=True, null=True,
+    )
+    avatar = models.FileField(upload_to="avatars/%Y/%m/", blank=True, null=True)# Profile-completeness fields (ProfilePage). Separate from `major`,
+    # `academic_year` and `gpa` above -- those feed the FR-04 recommendation
+    # engine and are matched against exact eligibility strings (e.g.
+    # "Computer Science"), while these are purely descriptive/contact info
+    # for the student's own profile card. All nullable/optional: a student
+    # shouldn't be locked out of the app for not filling these in, and some
+    # (date_of_birth, gender, blood_group) are sensitive enough that many
+    # students will legitimately choose not to share them.
+    full_name = models.CharField(
+        max_length=150, blank=True,
+        help_text="Student's real/display name -- distinct from the login username.",
+    )
+    phone_number = models.CharField(max_length=20, blank=True)
+    # Full degree/program title, e.g. "B.Sc. in Software Engineering" --
+    # kept separate from `major` (which the recommendation engine matches
+    # against scholarship/event eligible_majors lists like "Computer
+    # Science") since the two serve different purposes and granularities.
+    program = models.CharField(max_length=150, blank=True, null=True)
+    campus = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text="Short campus/location label, e.g. 'DSC'.",
+    )
+    date_of_birth = models.DateField(blank=True, null=True)
+    gender = models.CharField(max_length=30, blank=True, null=True)
+
+    BLOOD_GROUP_CHOICES = (
+        ('A+', 'A+'), ('A-', 'A-'),
+        ('B+', 'B+'), ('B-', 'B-'),
+        ('AB+', 'AB+'), ('AB-', 'AB-'),
+        ('O+', 'O+'), ('O-', 'O-'),
+    )
+    blood_group = models.CharField(
+        max_length=3, choices=BLOOD_GROUP_CHOICES, blank=True, null=True,
+    )
+    avatar = models.FileField(upload_to="avatars/%Y/%m/", blank=True, null=True)
+
     # A student's assigned primary advisor. This gates who can see this
     # student's risk-score/at-risk data (privacy-sensitive) -- it does NOT
     # restrict which advisor a student can book an appointment with, since

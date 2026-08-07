@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { fetchRecommendations } from "../api/recommendationsApi";
 import RecommendationCard from "../components/RecommendationCard";
 import RecommendationSkeleton from "../components/RecommendationSkeleton";
@@ -57,14 +56,7 @@ export default function RecommendationsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 animate-fade-up">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 transition-colors hover:text-green-700"
-        >
-          ← Back to dashboard
-        </Link>
-
-        <div className="mt-5 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Recommended for you</h1>
             <p className="mt-1 text-sm text-gray-500">

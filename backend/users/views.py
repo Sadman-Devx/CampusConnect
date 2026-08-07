@@ -1,12 +1,6 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
-from django.utils import timezone
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
-from django.core.mail import send_mail
-from django.conf import settings
-
 from rest_framework import generics, status
+from rest_framework.parsers import MultiPartParser, FormParser   # notun line
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -14,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import IsAssignedAdvisorOrAdmin
 from .serializers import (
-    RegisterSerializer, UserSerializer, ProfileUpdateSerializer,
+    RegisterSerializer, UserSerializer, ProfileUpdateSerializer, AvatarUploadSerializer,  # AvatarUploadSerializer add
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
 )
 
@@ -32,9 +26,7 @@ class RegisterView(generics.CreateAPIView):
 
         refresh = RefreshToken.for_user(user)
         return Response({
-            "user": UserSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
+"user": UserSerializer(user, context={"request": request}).data,
         }, status=status.HTTP_201_CREATED)
 
 
@@ -42,13 +34,30 @@ class MeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(UserSerializer(request.user).data)
+        return Response(UserSerializer(request.user, context={"request": request}).data)
 
     def patch(self, request):
         serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+        return Response(UserSerializer(request.user, context={"request": request}).data, status=status.HTTP_200_OK)
+
+
+class AvatarUploadView(APIView):
+    """Student uploads/replaces their own profile photo. Kept as a separate
+    multipart endpoint (rather than folded into MeView.patch) because the
+    rest of the profile form is submitted as JSON -- same separation the
+    servicerequests app uses between updating a request and attaching a
+    file to it."""
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        serializer = AvatarUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.avatar = serializer.validated_data["avatar"]
+        request.user.save(update_fields=["avatar"])
+        return Response(UserSerializer(request.user, context={"request": request}).data, status=status.HTTP_200_OK)
 
 
 class VerifyStudentGpaView(APIView):
@@ -74,7 +83,7 @@ class VerifyStudentGpaView(APIView):
         student.gpa_verified_at = timezone.now()
         student.gpa_verified_by = request.user
         student.save(update_fields=["gpa_verified_at", "gpa_verified_by"])
-        return Response(UserSerializer(student).data)
+        return Response(UserSerializer(student, context={"request": request}).data)
 
 
 class PasswordResetRequestView(APIView):

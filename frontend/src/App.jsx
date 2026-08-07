@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import GuestRoute from "./components/GuestRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AppLayout from "./components/AppLayout";
 import AdvisorRoute from "./components/AdvisorRoute";
 import StudentRoute from "./components/StudentRoute";
 import { AuthProvider } from "./context/AuthContext";
@@ -32,20 +33,23 @@ function App() {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          {/* /dashboard is a role-router: student -> student dashboard, advisor/admin -> /advisor */}
-          <Route path="/dashboard" element={<DashboardPage />} />
+          {/* Every authenticated page shares the same top nav / logout via AppLayout. */}
+          <Route element={<AppLayout />}>
+            {/* /dashboard is a role-router: student -> student dashboard, advisor/admin -> /advisor */}
+            <Route path="/dashboard" element={<DashboardPage />} />
 
-          <Route element={<StudentRoute />}>
-            <Route path="/dashboard/:slug" element={<WidgetDetailPage />} />
-            <Route path="/recommendations" element={<RecommendationsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/tickets" element={<TicketsPage />} />
-            <Route path="/advising" element={<AdvisingPage />} />
-            <Route path="/requests" element={<ServiceRequestsPage />} />
-          </Route>
+            <Route element={<StudentRoute />}>
+              <Route path="/dashboard/:slug" element={<WidgetDetailPage />} />
+              <Route path="/recommendations" element={<RecommendationsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/tickets" element={<TicketsPage />} />
+              <Route path="/advising" element={<AdvisingPage />} />
+              <Route path="/requests" element={<ServiceRequestsPage />} />
+            </Route>
 
-          <Route element={<AdvisorRoute />}>
-            <Route path="/advisor" element={<AdvisorDashboardPage />} />
+            <Route element={<AdvisorRoute />}>
+              <Route path="/advisor" element={<AdvisorDashboardPage />} />
+            </Route>
           </Route>
         </Route>
 

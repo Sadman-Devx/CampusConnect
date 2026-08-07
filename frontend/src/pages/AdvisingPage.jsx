@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   fetchAdvisors, fetchOpenSlots, fetchMyBookings,
   requestBooking, cancelBooking, respondToReschedule,
@@ -113,14 +112,7 @@ export default function AdvisingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-white">
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 animate-fade-up">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 transition-colors hover:text-green-700"
-        >
-          ← Back to dashboard
-        </Link>
-
-        <h1 className="mt-5 text-2xl font-semibold text-gray-900">Book an Advisor</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Book an Advisor</h1>
         <p className="mt-1 text-sm text-gray-500">
           Pick an advisor, choose an open time, and send a request. It's confirmed once they approve it.
         </p>

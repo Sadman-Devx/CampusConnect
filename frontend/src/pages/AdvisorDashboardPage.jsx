@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import OpportunityManager from "../components/OpportunityManager";
 import AvailabilityManager from "../components/AvailabilityManager";
@@ -39,7 +40,8 @@ function formatDateTime(value) {
 }
 
 export default function AdvisorDashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const location = useLocation();
   const [students, setStudents] = useState([]);
   const [studentsStatus, setStudentsStatus] = useState("loading");
   const [riskFilter, setRiskFilter] = useState("");
@@ -95,6 +97,19 @@ export default function AdvisorDashboardPage() {
     setAlertStatusFilter(key);
   };
 
+  // The top nav's Students/Service Requests/Support Tickets links point at
+  // in-page anchors (this page has no separate routes for them) -- scroll
+  // to the matching section whenever the hash changes, or back to the top
+  // for the plain "Dashboard" link.
+  useEffect(() => {
+    if (location.hash) {
+      const target = document.getElementById(location.hash.slice(1));
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [location.hash]);
+
   const handleRecompute = async () => {
     setIsRecomputing(true);
     try {
@@ -149,27 +164,17 @@ export default function AdvisorDashboardPage() {
                 : "at-risk students, predictive scores, and alerts that need follow-up."}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleRecompute}
-              disabled={isRecomputing}
-              className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm
-                font-medium text-gray-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50
-                hover:text-green-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <RefreshIcon className={`h-4 w-4 ${isRecomputing ? "animate-spin" : ""}`} />
-              {isRecomputing ? "Recomputing…" : "Recompute all scores"}
-            </button>
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700
-                transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-700 active:scale-[0.98]"
-            >
-              Log out
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleRecompute}
+            disabled={isRecomputing}
+            className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm
+              font-medium text-gray-700 transition-all duration-200 hover:border-green-300 hover:bg-green-50
+              hover:text-green-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RefreshIcon className={`h-4 w-4 ${isRecomputing ? "animate-spin" : ""}`} />
+            {isRecomputing ? "Recomputing…" : "Recompute all scores"}
+          </button>
         </div>
 
         {/* Summary stat cards */}
@@ -192,8 +197,8 @@ export default function AdvisorDashboardPage() {
           ))}
         </div>
 
-        {/* At-risk student list */}
-        <section className="mt-10">
+        {/* At-risk student list -- target of the top nav's "Students" link */}
+        <section id="students" className="mt-10 scroll-mt-24">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-gray-900">At-risk students</h2>
             <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
@@ -346,8 +351,16 @@ export default function AdvisorDashboardPage() {
               ))}
           </div>
         </section>
-        {(user?.role === "advisor" || user?.role === "admin") && <ServiceRequestManager />}
-        {(user?.role === "advisor" || user?.role === "admin") && <SupportTicketManager />}
+        {(user?.role === "advisor" || user?.role === "admin") && (
+          <div id="service-requests" className="scroll-mt-24">
+            <ServiceRequestManager />
+          </div>
+        )}
+        {(user?.role === "advisor" || user?.role === "admin") && (
+          <div id="support-tickets" className="scroll-mt-24">
+            <SupportTicketManager />
+          </div>
+        )}
         {user?.role === "advisor" && <AdvisorProfileEditor />}
         {user?.role === "advisor" && <AvailabilityManager />}
         {user?.role === "admin" && <StudentAssignmentManager />}
