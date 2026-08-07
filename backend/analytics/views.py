@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
@@ -32,10 +34,21 @@ def _model_not_trained_response():
 class MyRiskScoreView(APIView):
     permission_classes = [IsAuthenticated]
 
+    # Recompute at most this often on the student's own dashboard view, so
+    # repeatedly refreshing the page doesn't flood the RiskScore history
+    # table with near-duplicate rows -- but often enough that "I just met
+    # my advisor" or "I just registered for a course" shows up within a
+    # few minutes, instead of only when an advisor runs a bulk recompute.
+    RECOMPUTE_COOLDOWN_MINUTES = 5
+
     def get(self, request):
         latest = RiskScoringService.get_latest_for_student(request.user)
+        needs_recompute = (
+            latest is None
+            or (timezone.now() - latest.computed_at) > timedelta(minutes=self.RECOMPUTE_COOLDOWN_MINUTES)
+        )
         try:
-            if latest is None:
+            if needs_recompute:
                 latest = RiskScoringService.compute_for_student(request.user)
         except RiskModelNotTrainedError:
             return _model_not_trained_response()

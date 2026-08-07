@@ -126,6 +126,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# File attachments on service requests (see servicerequests.ServiceRequestAttachment).
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 AUTH_USER_MODEL = 'users.User'
 
 CORS_ALLOWED_ORIGINS = [

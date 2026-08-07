@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { fetchMyRequests, submitRequest } from "../api/serviceRequestsApi";
 import { AlertStatusBadge } from "../components/AlertBadges";
+import RequestThread from "../components/RequestThread";
 
 const CATEGORIES = [
   { key: "academic", label: "Academic" },
@@ -21,6 +23,7 @@ function formatDateTime(value) {
 }
 
 export default function ServiceRequestsPage() {
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [requestsStatus, setRequestsStatus] = useState("loading");
 
@@ -67,6 +70,10 @@ export default function ServiceRequestsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleThreadUpdate = (updated) => {
+    setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   };
 
   return (
@@ -166,7 +173,10 @@ export default function ServiceRequestsPage() {
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{r.subject}</p>
-                      <p className="text-xs capitalize text-gray-400">{r.category}</p>
+                      <p className="text-xs capitalize text-gray-400">
+                        {r.category}
+                        {r.assigned_to_username && ` · Being handled by ${r.assigned_to_username}`}
+                      </p>
                     </div>
                     <AlertStatusBadge status={r.status} />
                   </div>
@@ -178,6 +188,8 @@ export default function ServiceRequestsPage() {
                     </p>
                   )}
                   <p className="mt-2 text-xs text-gray-400">Submitted {formatDateTime(r.created_at)}</p>
+
+                  <RequestThread request={r} currentUsername={user?.username} onUpdate={handleThreadUpdate} />
                 </div>
               ))}
           </div>
